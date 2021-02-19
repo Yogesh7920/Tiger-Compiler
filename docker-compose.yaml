@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  main:
+    build: .
+    container_name: main
+    command: >
+      bash -c "make tc"
+    volumes:
+      - .:/code
