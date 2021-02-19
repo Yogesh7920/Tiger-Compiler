@@ -1,10 +1,20 @@
-### General Info
+# General Info
 
-Name: Yogesh <br/>
-Roll Number: 111801047
+    Name: Yogesh <br/>
+    Roll Number: 111801047
 
-### How to run
+# How to run
 
-There are three was to run
- - make tc (requirements: _smlnj, ml-yacc, ml-lex, ml-burg, mlton, make_)
- - docker-compose up (requirements: _docker, docker-compose, internet_)
+## There are three was to run the program
+### 1. make tc 
+    requirements: smlnj, ml-yacc, ml-lex, ml-burg, mlton, make
+### 2. docker-compose up
+    requirements: docker, docker-compose, internet
+
+### 3. make docker 
+    similiar to the above method, also removes cleans and removes the container
+
+# Make Targets
+### 1. all: same as _make tc_
+### 2. tc: compiles and executes main.sml
+### 3. docker: does _make tc && make clean_ in a container and the removes it. 
