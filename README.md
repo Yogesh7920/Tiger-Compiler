@@ -1,6 +1,6 @@
 # General Info
 
-    Name: Yogesh <br/>
+    Name: Yogesh
     Roll Number: 111801047
 
 # How to run
