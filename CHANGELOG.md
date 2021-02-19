@@ -1,3 +1,16 @@
+# 2-19-2021
+
+## Added
+- src folder
+- main.sml inside src folder
+
+## Changes
+- Added the following make targets
+  - all
+  - tc
+  - docker
+  - clean
+
 # 2-18-2021
 ## Added
 - make
