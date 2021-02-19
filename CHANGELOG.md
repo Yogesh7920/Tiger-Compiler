@@ -1,5 +1,5 @@
 # 2-18-2021
-## Added:
+## Added
 - make
 - Dockerfile
 - docker-compose.yaml
