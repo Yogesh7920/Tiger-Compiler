@@ -11,10 +11,8 @@ $(EXE):
 	@mlton $(MAINSRC)
 
 docker:
-	@(docker-compose up)
-	@(docker-compose down)
-
-
+	docker container run -it --rm -v $(shell pwd):/code yogesh7920/compiler_sml bash
+	
 .PHONY: clean
 clean:
 	@(rm src/main)
