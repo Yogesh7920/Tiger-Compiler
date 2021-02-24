@@ -11,7 +11,7 @@ $(EXE):
 	@mlton $(MAINSRC)
 
 docker:
-	docker container run -it --rm -v $(shell pwd):/code yogesh7920/compiler_sml bash
+	docker container run -it --rm -v $(shell pwd):/code piyushkurur/compilers bash
 	
 .PHONY: clean
 clean:
