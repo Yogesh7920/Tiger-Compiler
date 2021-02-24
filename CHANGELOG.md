@@ -1,24 +1,26 @@
-# 2-19-2021
+# Change Log
 
-## Added
+## 2-19-2021
+
+### Added
 - src folder
 - main.sml inside src folder
 
-## Changes
+### Changes
 - Added the following make targets
   - all
   - tc
   - docker
   - clean
 
-# 2-18-2021
-## Added
+## 2-18-2021
+### Added
 - make
 - Dockerfile
 - docker-compose.yaml
-## Changes
+### Changes
 - added target _tc_ to make; prints _hello world_.
 - Dockerfile make to create the required container.
 - docker-compose.yaml: _main_ service created for ease of development.
-# 2-17-2021
+## 2-17-2021
     Initialized the project in local and gitlab.

@@ -5,6 +5,8 @@ services:
     build: .
     container_name: main
     command: >
-      bash -c "make tc && make clean"
+      bash -c "
+      make tc && 
+      make clean"
     volumes:
       - .:/code
