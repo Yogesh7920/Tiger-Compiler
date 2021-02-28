@@ -63,7 +63,7 @@ datatype Expr  = Const of int
 
 The process of converting the input program, which is a string, to the
 abstract syntax tree is guided by the concrete syntax. This conversion
-is called _parsing_. We do not have the code for parsing our
+is called _parsing_. We *do not* have the code for parsing our
 expression language in this file. Rather, we use the mlyacc and mllex
 programs to write our expression parsers. You can have a look at the
 expr.grm and expr.lex files in this repository but it would be clear
