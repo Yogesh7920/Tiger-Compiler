@@ -1,13 +1,14 @@
-# Change Log
+# Change Log 
 
-## 2-28-2021
+  _(date: yyyy-mm-dd)_
+
+## 2021-02-28
 - division working for ec. 
-## 2-25-2021
-
+## 2021-02-25
 ### Added
 - reverse-polish folder copied from <br>
   https://gitlab.com/piyush-kurur/compilers/-/tree/master/reverse-polish
-## 2-19-2021
+## 2021-02-19
 
 ### Added
 - src folder
@@ -20,7 +21,7 @@
   - docker
   - clean
 
-## 2-18-2021
+## 2021-02-18
 ### Added
 - make
 - Dockerfile
@@ -29,5 +30,5 @@
 - added target _tc_ to make; prints _hello world_.
 - Dockerfile make to create the required container.
 - docker-compose.yaml: _main_ service created for ease of development.
-## 2-17-2021
+## 2021-02-17
     Initialized the project in local and gitlab.
