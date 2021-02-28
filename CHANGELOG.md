@@ -1,5 +1,7 @@
 # Change Log
 
+## 2-28-2021
+- division working for ec. 
 ## 2-25-2021
 
 ### Added
