@@ -31,8 +31,8 @@ left associative and the precedence increase as you go down this list.
 
 *)
 
-%left MUL         (* higher than + and -            *)
 %left PLUS MINUS  (* + and - are of same precedence *)
+%left MUL         (* higher than + and -            *)
 
 (* The type that captures position in the input *)
 %pos int
