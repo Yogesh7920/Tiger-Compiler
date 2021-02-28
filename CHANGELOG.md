@@ -3,7 +3,7 @@
   _(date: yyyy-mm-dd)_
 
 ## 2021-02-28
-- division working for ec. 
+- Extended the reverse polish compiler to support division
 ## 2021-02-25
 ### Added
 - reverse-polish folder copied from <br>

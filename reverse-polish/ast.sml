@@ -91,12 +91,7 @@ integers. For this purpose we define the meaning of an operator
 fun binOpDenote Plus  x y = x + y
   | binOpDenote Minus x y = x - y
   | binOpDenote Mul   x y = x * y
-  | binOpDenote Div   x y = x * y; 
-  (* '*' is used instead of '/' as '/' results in error 
-  because the function returns int whereas '/' works only on real.
-  Moreover, the compiler does not evaluate the expression in only converts into rp 
-  and thus this shouldn't matter for ec.
-   *)
+  | binOpDenote Div   x y = x div y; 
 
 fun exprDenote (Const x)       = x
   | exprDenote (Op (x,oper,y)) = binOpDenote oper (exprDenote x) (exprDenote y);
