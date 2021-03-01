@@ -5,7 +5,7 @@
 
 # Lab Assignments
 
-## Lab 1: Updating the reverse polish compiler
+## Lab 1: Updating the reverse polish compiler _( done )_
 
 ### Experiment-3
     Change the expr.grm file by commenting out the lines %left (The comment syntax is the same as SML)

@@ -2,6 +2,8 @@
 
   _(date: yyyy-mm-dd)_
 
+## 2021-03-01
+- Extend the reverse polish compiler to support brackets.
 ## 2021-02-28
 - Extended the reverse polish compiler to support division
 ## 2021-02-25
