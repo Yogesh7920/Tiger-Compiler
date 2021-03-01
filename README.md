@@ -1,12 +1,12 @@
 # General Info
 
-    Name: Yogesh
+    Name: Yogesh R
     Roll Number: 111801047
 
 # Lab Assignments
 
 ## Lab 1: Updating the reverse polish compiler _( done )_
-
+    Working Dir: ./reverse-polish
 ### Experiment-3
     Change the expr.grm file by commenting out the lines %left (The comment syntax is the same as SML)
 
