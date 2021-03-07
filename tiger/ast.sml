@@ -4,22 +4,17 @@ structure Tiger = struct
                     ExprList    | *)
 
 
-datatype    Binop   =   Plus    |
+datatype    AST    =    Exp     |
+                        Decs    
+
+    and     Exp    =    Int     |
+                        Str     |
+                        Op of Exp * BinOp * Exp
+    
+    and     BinOp  =    Plus    |
                         Minus   |
                         Mul     |
-                        Div     
-
-    and     Expr    =   Id  of string   |
-                        num of int      |
-                        Op  of num * BinOp * num
-    
-    and     ExprList =   Empty   |
-                        Some of Expr list
-
-    and     Stm     =   Print of ExprList       |
-                        Assign of Id * Expr     |
-                        Compound of Stm * Stm
-
+                        Div 
 
 and classfield = VarDec ...
                | Method of { method_id   : ID

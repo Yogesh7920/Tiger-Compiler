@@ -2,6 +2,8 @@
 
   _(date: yyyy-mm-dd)_
 
+## 2021-03-07
+- MIPS instruction set captured.
 ## 2021-03-06
 - Basic AST for tiger done.
 
