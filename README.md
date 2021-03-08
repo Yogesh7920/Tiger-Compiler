@@ -5,6 +5,14 @@
 
 # Lab Assignments
 
+## Lab 2: AST for TIGER and MIPS _(done)_ 
+    Make tc -> Compiles the AST of tiger.
+    Make mips -> Compiles the AST of MIPS.
+    Make all -> Does both (along with lab-0).
+.
+
+    The tiger/ast.sml has test case implemented below. 
+
 ## Lab 1: Updating the reverse polish compiler _( done )_
     Working Dir: ./reverse-polish
 ### Experiment-3

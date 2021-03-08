@@ -10,7 +10,6 @@ datatype regs = zero | at | v0 | v1 | (* $0 - $3 *)
                 f0   | f1 | f2 | f3 | (* floating return regs *)
                 f4   | f5 | f6 | f7 | f8 | f9 | f10 (* temp. regs *)
 
-
 datatype  ('l,'t) inst =    ADD of 't * 't * 't     |
                             ADDI of 't * 't * int   |
                             ADDU of 't * 't * 't    |
@@ -90,6 +89,12 @@ datatype  ('l,'t) inst =    ADD of 't * 't * 't     |
                             JR of 't                |
                             JAL of 'l               |
                             JALR of 't              |
+
+                            RFE                     |
+                            SYSCALL                 |
+                            BREAK                   |
+                            NOP                     |
+
                             print_int of int        |
                             print_float of real     |
                             print_double of real    |
@@ -101,17 +106,8 @@ datatype  ('l,'t) inst =    ADD of 't * 't * 't     |
                             exit                    |
                             exit2
 
+datatype Label = LUser of string | LTemp of int
 
-datatype Label = LUser of string
-                | LTemp of int
+end
 
-(*
-
-The code generated will be of type (Label, Temp) inst
-
-fun toString (LUser s ) = "_" ^ s
-    | toString (LTemp i)  = "_" ^ Int.toString i
-
-*)
-
- (* actual code that SPIM can understand is (string, reg) inst *)
+val _ = print "Hello From MIPS AST\n";

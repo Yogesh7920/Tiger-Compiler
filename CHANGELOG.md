@@ -2,6 +2,10 @@
 
   _(date: yyyy-mm-dd)_
 
+## 2021-03-08
+- Tiger AST captured.
+- Many MIPS instruction captured.
+- Tiger AST Test capture done.
 ## 2021-03-07
 - MIPS instruction set captured.
 ## 2021-03-06

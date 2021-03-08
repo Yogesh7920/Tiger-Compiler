@@ -1,11 +1,32 @@
 SRCDIR := src
+TIGERDIR := tiger
+TARGETDIR := target
+
 MAINSRC := $(SRCDIR)/main.sml
+TIGERAST := $(TIGERDIR)/ast.sml
+TARGETAST := $(TARGETDIR)/mips.sml
+
 EXE := $(SRCDIR)/main
+COMP_TIGER_AST := $(TIGERDIR)/ast
+COMP_TARGET_AST := $(TARGETDIR)/mips
 
-all: tc
+all: tc mips src
 
-tc: $(EXE)
+tc: $(COMP_TIGER_AST)
+	@(./$(COMP_TIGER_AST))
+
+
+mips: $(COMP_TARGET_AST)
+	@(./$(COMP_TARGET_AST))
+
+src: $(EXE)
 	@(./$(EXE))
+
+$(COMP_TIGER_AST):
+	@mlton $(TIGERAST)
+
+$(COMP_TARGET_AST):
+	@mlton $(TARGETAST)
 
 $(EXE):
 	@mlton $(MAINSRC)
@@ -15,5 +36,5 @@ docker:
 	
 .PHONY: clean
 clean:
-	@(rm src/main)
+	@(rm $(EXE) $(COMP_TIGER_AST) $(COMP_TARGET_AST) -f)
 

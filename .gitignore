@@ -10,6 +10,8 @@
 
 sml_test/
 src/main
+tiger/ast
+target/mips
 Dockerfile
 
 
