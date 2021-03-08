@@ -5,7 +5,7 @@
 
 # Lab Assignments
 
-## Lab 2: AST for TIGER and MIPS _(done)_ 
+## :white_check_mark:  Lab 2: AST for TIGER and MIPS 
     Make tc -> Compiles the AST of tiger.
     Make mips -> Compiles the AST of MIPS.
     Make all -> Does both (along with lab-0).
@@ -13,7 +13,7 @@
 
     The tiger/ast.sml has test case implemented below. 
 
-## Lab 1: Updating the reverse polish compiler _( done )_
+## :white_check_mark:  Lab 1: Updating the reverse polish compiler _( done )_
     Working Dir: ./reverse-polish
 ### Experiment-3
     Change the expr.grm file by commenting out the lines %left (The comment syntax is the same as SML)
