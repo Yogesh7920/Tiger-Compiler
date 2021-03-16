@@ -65,7 +65,7 @@ id = [a-zA-Z_]+;
 "import"        => ( Tokens.IMPORT (yytext, !lineRef, !lineRef));
 "primitive"     => ( Tokens.PRIMITIVE (yytext, !lineRef, !lineRef));
 
-
+";"          => ( Tokens.SEMICOLON (yytext, !lineRef, !lineRef));
 "("          => ( Tokens.LPARAN (yytext, !lineRef, !lineRef));
 ")"          => ( Tokens.RPARAN (yytext, !lineRef, !lineRef));
 "["          => ( Tokens.LBRACK (yytext, !lineRef, !lineRef));
