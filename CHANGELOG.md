@@ -2,6 +2,13 @@
 
   _(date: yyyy-mm-dd)_
 
+
+## 2021-15-08
+- Tiger parser done (tiger/tiger.grm) 
+## 2021-14-08
+### Added
+- Tiger Parser Added
+- Tiger Lexer Added
 ## 2021-03-08
 - Tiger AST captured.
 - Many MIPS instruction captured.

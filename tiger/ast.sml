@@ -5,7 +5,7 @@ type id = string
 type typeid = id
 type tyfields = {ID: id, Type: typeid} list 
 
-datatype AST    =   Exp                 |
+datatype Prog    =  Exps of Exp list   |
                     Decs of Dec list
 
     and Exp     =   Null                                                    |
@@ -20,20 +20,19 @@ datatype AST    =   Exp                 |
                     Oper of (Exp * BinOp * Exp)                             |
                     Assign of Lvalue * Exp                                  |
                     IfCond of {If: Exp, Then: Exp, Else: Exp option}        |
-                    While of {Cond: Exp, Do: Exp}                           |
-                    For of {Var: id, From: Exp, To: Exp, Do: Exp}           |
+                    While of {Cond: Exp, Body: Exp}                           |
+                    For of {Var: id, From: Exp, To: Exp, Body: Exp}           |
                     Break                                                   |
                     LetExp of {Let: Dec list, In: Exp}                      |
-                    Exps of Exp list
 
     and Lvalue  =   Var of id               |
                     Member of Lvalue * id   |
                     Ref of Lvalue * Exp      
 
-    and Dec     =   TypeDec of Ty                                                             |
-                    ClassDef of {Name: id, Extends: typeid option, Fields: Classfield}        |
+    and Dec     =   TypeDec of {Name: id, Type: Ty}                                                             |
                     VarDec of {Name: id, Type: typeid option, Val: Exp}                       |
                     FunDec of {Name: id, ArgTypes: tyfields, Type: typeid option, Val: Exp}   |
+                    ClassDef of {Name: id, Extends: typeid option, Fields: Classfield}        |
                     PrimitiveDec of {Name: id, ArgTypes: tyfields, Type: typeid option}
 
 and Classfield  =   Classfields of Classfield list                                                      |
@@ -42,9 +41,11 @@ and Classfield  =   Classfields of Classfield list                              
 
     and Ty      =   TypeAlias of typeid          |
                     RecordType of tyfields list  |
-                    ArrayType of typeid
+                    ArrayType of typeid          |
+                    ClassType of {Fields: typeid option, Extends: Classfield list}
 
-    and BinOp   =   Plus | Minus | Mul | Div |
+
+    and BinOp   =   Plus | Minus | Mul | Div | Mod |
                     Eq   | Neq   | Gt  | Lt  | Gte | Lte  |
                     And  | Or 
 
