@@ -42,6 +42,8 @@
     | THEN
     | ELSE
     | FOR
+    | TO
+    | DO 
     | WHILE
     | BREAK
     | LET 
@@ -89,7 +91,7 @@ EXPS    : (* empty *)           ( []                  )
 DECS    : (* empty *)           ( []                  )
         | EXP NEWLINE EXPS      ( DEC :: DECS         )
 
-EXP     : NULL                  (Tiger.Null)
+EXP     : NIL                   (Tiger.NIL)
         | INT                   (Tiger.Int)
         | STR                   (Tiger.Str)
 
