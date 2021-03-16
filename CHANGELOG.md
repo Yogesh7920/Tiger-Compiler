@@ -4,6 +4,7 @@
 
 
 ## 2021-15-08
+- Tiger lexer done (tiger/tiger.lex)
 - Tiger parser done (tiger/tiger.grm) 
 ## 2021-14-08
 ### Added

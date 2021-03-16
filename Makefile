@@ -2,11 +2,11 @@ SRCDIR := src
 TIGERDIR := tiger
 TARGETDIR := target
 
-MAINSRC := $(SRCDIR)/main.sml
+TC := $(TIGERDIR)/tc.sml
 TIGERAST := $(TIGERDIR)/ast.sml
 TARGETAST := $(TARGETDIR)/mips.sml
 
-EXE := $(SRCDIR)/main
+EXE := $(TIGERDIR)/tc
 COMP_TIGER_AST := $(TIGERDIR)/ast
 COMP_TARGET_AST := $(TARGETDIR)/mips
 
@@ -29,7 +29,7 @@ $(COMP_TARGET_AST):
 	@mlton $(TARGETAST)
 
 $(EXE):
-	@mlton $(MAINSRC)
+	@mlton $(TC)
 
 docker:
 	@docker container run -it --rm -v $(shell pwd):/code -w /code piyushkurur/compilers bash

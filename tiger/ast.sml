@@ -8,7 +8,7 @@ type tyfields = {ID: id, Type: typeid} list
 datatype Prog    =  Exps of Exp list   |
                     Decs of Dec list
 
-    and Exp     =   Null                                                    |
+    and Exp     =   NIL                                                     |
                     Int of int                                              |
                     Str of string                                           |
                     Array of {Type: typeid, Len: Exp, Val: Exp}             |
