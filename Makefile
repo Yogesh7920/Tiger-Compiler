@@ -1,16 +1,19 @@
-TIG_BIN := tiger/tiger
+EXE := tiger/tiger
 TIG := $(addprefix tiger/, tiger.mlb ast.sml tiger.grm.sml tiger.lex.sml tiger.sml)
-TIG_GEN := $(addprefix tiger/, *.grm.sml *.lex.sml *.grm.desc *.grm.sig)
+GEN := $(addprefix tiger/, *.grm.sml *.lex.sml *.grm.desc *.grm.sig)
 
 .PHONY: all clean tests test
 
-all: ${TIG_BIN}
-	@echo "Make done Successfully, run executable - tiger"
+all: ${EXE}
+	@echo "Make done Successfully, do 'make run' to execute the executable"
 
-tc: ${TIG_BIN}
-	@echo "Make done Successfully, run executable - tiger"
+tc: ${EXE}
+	@echo "Make done Successfully, do 'make run' to execute the executable"
 
-${TIG_BIN}: ${TIG}
+run: ${EXE}
+	./${EXE}
+
+${EXE}: ${TIG}
 	mlton -output $@ $<
 
 %.lex.sml: %.lex
@@ -20,7 +23,7 @@ ${TIG_BIN}: ${TIG}
 	mlyacc $<
 
 clean:
-	rm -f ${TIG_BIN} ${TIG_GEN}
+	rm -f ${EXE} ${GEN}
 
 docker:
 	@docker container run -it --rm -v $(shell pwd):/code -w /code piyushkurur/compilers bash

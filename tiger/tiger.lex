@@ -35,7 +35,7 @@ val newlineCount = List.length o List.filter (fn x => x = #"\n") o String.explod
 ws    = [\ \t];
 digits = [0-9]+;
 alpha = [a-zA-Z];
-id = {alpha}[a-zA-Z_]*{alpha};
+id = {alpha}+;
 
 %%
 
