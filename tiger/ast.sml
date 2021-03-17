@@ -5,7 +5,7 @@ type id = string
 type typeid = id
 type tyfields = {ID: id, Type: typeid} list 
 
-datatype Prog    =  Exps of Exp list   |
+datatype Prog    =  Expr of Exp        |
                     Decs of Dec list
 
     and Exp     =   NIL                                                     |
@@ -23,7 +23,8 @@ datatype Prog    =  Exps of Exp list   |
                     While of {Cond: Exp, Body: Exp}                         |
                     For of {Var: id, From: Exp, To: Exp, Body: Exp}         |
                     Break                                                   |
-                    LetExp of {Let: Dec list, In: Exp}
+                    LetExp of {Let: Dec list, In: Exp}                      |
+                    Exps of Exp list
 
     and Lvalue  =   Var of id               |
                     Member of Lvalue * id   |
@@ -32,25 +33,25 @@ datatype Prog    =  Exps of Exp list   |
     and Dec     =   TypeDec of {Name: id, Type: Ty}                                           |
                     VarDec of {Name: id, Type: typeid option, Val: Exp}                       |
                     FunDec of {Name: id, ArgTypes: tyfields, Type: typeid option, Val: Exp}   |
-                    ClassDef of {Name: id, Extends: typeid option, Fields: Classfield}        |
+                    ClassDec of {Name: id, Extends: typeid option, Fields: Classfields}        |
                     PrimitiveDec of {Name: id, ArgTypes: tyfields, Type: typeid option}
 
 and Classfield  =   ClassVarDec of {Name: id, Type: typeid option, Val: Exp}                            |
                     ClassMethodDec of {Name: id, ArgTypes: tyfields, Type: typeid option, Val: Exp}
 
     and Ty      =   TypeAlias of typeid          |
-                    RecordType of tyfields list  |
+                    RecordType of tyfields       |
                     ArrayType of typeid          |
-                    ClassType of {Fields: typeid option, Extends: Classfield list}
+                    ClassType of {Fields: Classfields, Extends: typeid option}
 
 
     and BinOp   =   Plus | Minus | Mul | Div |
                     Eq   | Neq   | Gt  | Lt  | Gte | Lte  |
                     And  | Or 
 
-type Classfields    = Classfield list
+withtype Classfields    = Classfield list
 
-end (* structure Tiger *)
+end
 
 
 (* val _ = print "Hello From Tiger AST\n"; *)

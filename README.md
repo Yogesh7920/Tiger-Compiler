@@ -5,6 +5,8 @@
 
 # Lab Assignments
 
+## :white_check_mark:  Lab 3: Parser for Tiger language.
+    make -> builds the tiger compiler and results a executable tiger
 ## :white_check_mark:  Lab 2: AST for TIGER and MIPS 
     Make tc -> Compiles the AST of tiger.
     Make mips -> Compiles the AST of MIPS.

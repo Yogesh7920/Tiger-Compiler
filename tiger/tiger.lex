@@ -11,7 +11,7 @@ type ('a,'b) token = ('a,'b) Tokens.token
 type lexresult     = (svalue,pos) token
 
 fun lineRange l r = "line " ^ l
-fun error (e,l,r) = TextIO.output(TextIO.stdErr, lineRange l r ^ ":" ^ e ^ "\n")
+fun err pos msg = print msg;
 
 
 
@@ -31,10 +31,11 @@ val newlineCount = List.length o List.filter (fn x => x = #"\n") o String.explod
 
 %%
 
-%header (functor ExprLexFun(structure Tokens : Expr_TOKENS));
+%header (functor TigerLexFun(structure Tokens : Tiger_TOKENS));
 ws    = [\ \t];
 digits = [0-9]+;
-id = [a-zA-Z_]+;
+alpha = [a-zA-Z];
+id = {alpha}[a-zA-Z_]*{alpha};
 
 %%
 
@@ -45,47 +46,51 @@ id = [a-zA-Z_]+;
                         end
                     );
 
-"array"         => ( Tokens.ARRAY (yytext, !lineRef, !lineRef));
-"if"            => ( Tokens.IF (yytext, !lineRef, !lineRef));
-"then"          => ( Tokens.THEN (yytext, !lineRef, !lineRef));
-"else"          => ( Tokens.ELSE (yytext, !lineRef, !lineRef));
-"while"         => ( Tokens.WHILE (yytext, !lineRef, !lineRef));
-"for"           => ( Tokens.FOR (yytext, !lineRef, !lineRef));
-"to"            => ( Tokens.TO (yytext, !lineRef, !lineRef));
-"do"            => ( Tokens.DO (yytext, !lineRef, !lineRef));
-"let"           => ( Tokens.LET (yytext, !lineRef, !lineRef));
-"in"            => ( Tokens.IN (yytext, !lineRef, !lineRef));
-"end"           => ( Tokens.END (yytext, !lineRef, !lineRef));
-"of"            => ( Tokens.OF (yytext, !lineRef, !lineRef));
-"break"         => ( Tokens.BREAK (yytext, !lineRef, !lineRef));
-"nil"           => ( Tokens.NIL (yytext, !lineRef, !lineRef));
-"function"      => ( Tokens.FUNCTION (yytext, !lineRef, !lineRef));
-"var"           => ( Tokens.VAR (yytext, !lineRef, !lineRef));
-"type"          => ( Tokens.TYPE (yytext, !lineRef, !lineRef));
-"import"        => ( Tokens.IMPORT (yytext, !lineRef, !lineRef));
-"primitive"     => ( Tokens.PRIMITIVE (yytext, !lineRef, !lineRef));
+"array"         => ( Tokens.ARRAY (!lineRef, !lineRef));
+"if"            => ( Tokens.IF (!lineRef, !lineRef));
+"then"          => ( Tokens.THEN (!lineRef, !lineRef));
+"else"          => ( Tokens.ELSE (!lineRef, !lineRef));
+"while"         => ( Tokens.WHILE (!lineRef, !lineRef));
+"for"           => ( Tokens.FOR (!lineRef, !lineRef));
+"to"            => ( Tokens.TO (!lineRef, !lineRef));
+"do"            => ( Tokens.DO (!lineRef, !lineRef));
+"let"           => ( Tokens.LET (!lineRef, !lineRef));
+"in"            => ( Tokens.IN (!lineRef, !lineRef));
+"end"           => ( Tokens.END (!lineRef, !lineRef));
+"of"            => ( Tokens.OF (!lineRef, !lineRef));
+"break"         => ( Tokens.BREAK (!lineRef, !lineRef));
+"nil"           => ( Tokens.NIL (!lineRef, !lineRef));
+"function"      => ( Tokens.FUNCTION (!lineRef, !lineRef));
+"var"           => ( Tokens.VAR (!lineRef, !lineRef));
+"type"          => ( Tokens.TYPE (!lineRef, !lineRef));
+"import"        => ( Tokens.IMPORT (!lineRef, !lineRef));
+"primitive"     => ( Tokens.PRIMITIVE (!lineRef, !lineRef));
+"class"         => ( Tokens.CLASS (!lineRef, !lineRef));
+"new"           => ( Tokens.NEW (!lineRef, !lineRef));
+"method"        => ( Tokens.METHOD (!lineRef, !lineRef));
 
-";"          => ( Tokens.SEMICOLON (yytext, !lineRef, !lineRef));
-"("          => ( Tokens.LPARAN (yytext, !lineRef, !lineRef));
-")"          => ( Tokens.RPARAN (yytext, !lineRef, !lineRef));
-"["          => ( Tokens.LBRACK (yytext, !lineRef, !lineRef));
-"]"          => ( Tokens.RBRACK (yytext, !lineRef, !lineRef));
-"{"          => ( Tokens.LCURLY (yytext, !lineRef, !lineRef));
-"}"          => ( Tokens.RCURLY (yytext, !lineRef, !lineRef));
-"."          => ( Tokens.DOT (yytext, !lineRef, !lineRef));
-"+"          => ( Tokens.PLUS (yytext, !lineRef, !lineRef));
-"-"          => ( Tokens.MINUS (yytext, !lineRef, !lineRef));
-"*"          => ( Tokens.MUL (yytext, !lineRef, !lineRef));
-"/"          => ( Tokens.DIV (yytext, !lineRef, !lineRef));
-"="          => ( Tokens.EQ (yytext, !lineRef, !lineRef));
-"<>"         => ( Tokens.NEQ (yytext, !lineRef, !lineRef));
-"<"          => ( Tokens.LT (yytext, !lineRef, !lineRef));
-"<="         => ( Tokens.LTE (yytext, !lineRef, !lineRef));
-">"          => ( Tokens.GT (yytext, !lineRef, !lineRef));
-">="         => ( Tokens.GTE (yytext, !lineRef, !lineRef));
-"&"          => ( Tokens.AND (yytext, !lineRef, !lineRef));
-"|"          => ( Tokens.OR (yytext, !lineRef, !lineRef));
-":="         => ( Tokens.ASSIGN (yytext, !lineRef, !lineRef));
+";"          => ( Tokens.SEMICOLON (!lineRef, !lineRef));
+"("          => ( Tokens.LPARAN (!lineRef, !lineRef));
+")"          => ( Tokens.RPARAN (!lineRef, !lineRef));
+"["          => ( Tokens.LBRACK (!lineRef, !lineRef));
+"]"          => ( Tokens.RBRACK (!lineRef, !lineRef));
+"{"          => ( Tokens.LCURLY (!lineRef, !lineRef));
+"}"          => ( Tokens.RCURLY (!lineRef, !lineRef));
+"."          => ( Tokens.DOT (!lineRef, !lineRef));
+"+"          => ( Tokens.PLUS (!lineRef, !lineRef));
+"-"          => ( Tokens.MINUS (!lineRef, !lineRef));
+"*"          => ( Tokens.MUL (!lineRef, !lineRef));
+"/"          => ( Tokens.DIV (!lineRef, !lineRef));
+"<>"         => ( Tokens.NEQ (!lineRef, !lineRef));
+"<="         => ( Tokens.LTE (!lineRef, !lineRef));
+"<"          => ( Tokens.LT (!lineRef, !lineRef));
+">="         => ( Tokens.GTE (!lineRef, !lineRef));
+">"          => ( Tokens.GT (!lineRef, !lineRef));
+"&"          => ( Tokens.AND (!lineRef, !lineRef));
+"|"          => ( Tokens.OR (!lineRef, !lineRef));
+":="         => ( Tokens.ASSIGN (!lineRef, !lineRef));
+"="          => ( Tokens.EQ (!lineRef, !lineRef));
 
-{digits}        => ( Tokens.INT (toInt yytext, !lineRef, !lineRef));
-{id}            => (Token.ID (yytext, !lineRef, !lineRef));
+{digits}      => ( Tokens.INT (toInt yytext, !lineRef, !lineRef));
+{id}          => ( Tokens.ID (yytext, !lineRef, !lineRef));
+.             => (err yypos ("Invalid !! '" ^ yytext ^ "' found"); lex());

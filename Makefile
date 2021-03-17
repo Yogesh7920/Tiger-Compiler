@@ -1,40 +1,26 @@
-SRCDIR := src
-TIGERDIR := tiger
-TARGETDIR := target
+TIG_BIN := tiger/tiger
+TIG := $(addprefix tiger/, tiger.mlb ast.sml tiger.grm.sml tiger.lex.sml tiger.sml)
+TIG_GEN := $(addprefix tiger/, *.grm.sml *.lex.sml *.grm.desc *.grm.sig)
 
-TC := $(TIGERDIR)/tc.sml
-TIGERAST := $(TIGERDIR)/ast.sml
-TARGETAST := $(TARGETDIR)/mips.sml
+.PHONY: all clean tests test
 
-EXE := $(TIGERDIR)/tc
-COMP_TIGER_AST := $(TIGERDIR)/ast
-COMP_TARGET_AST := $(TARGETDIR)/mips
+all: ${TIG_BIN}
+	@echo "Make done Successfully, run executable - tiger"
 
-all: tc mips src
+tc: ${TIG_BIN}
+	@echo "Make done Successfully, run executable - tiger"
 
-tc: $(COMP_TIGER_AST)
-	@(./$(COMP_TIGER_AST))
+${TIG_BIN}: ${TIG}
+	mlton -output $@ $<
 
+%.lex.sml: %.lex
+	mllex $<
 
-mips: $(COMP_TARGET_AST)
-	@(./$(COMP_TARGET_AST))
+%.grm.sml: %.grm
+	mlyacc $<
 
-src: $(EXE)
-	@(./$(EXE))
-
-$(COMP_TIGER_AST):
-	@mlton $(TIGERAST)
-
-$(COMP_TARGET_AST):
-	@mlton $(TARGETAST)
-
-$(EXE):
-	@mlton $(TC)
+clean:
+	rm -f ${TIG_BIN} ${TIG_GEN}
 
 docker:
 	@docker container run -it --rm -v $(shell pwd):/code -w /code piyushkurur/compilers bash
-	
-.PHONY: clean
-clean:
-	@(rm $(EXE) $(COMP_TIGER_AST) $(COMP_TARGET_AST) -f)
-

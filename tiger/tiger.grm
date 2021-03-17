@@ -1,3 +1,6 @@
+(* This line is just to get syntax highlighting in vscode *)
+fun x _ = 1;
+
 %%
 
 %eop EOF (* What token to use as end of parsing token              *)
@@ -55,26 +58,31 @@
     | METHOD
     | PRIMITIVE
     | IMPORT
-    | TYFIELDS
+    | LOWPREC
 
 %nonterm  PROG of Tiger.Prog
-        | EXP of Tiger.EXP
-        | EXPS of Tiger list
+        | EXP of Tiger.Exp
+        | EXPS of Tiger.Exp list
         | DEC of Tiger.Dec
         | DECS of Tiger.Dec list
-        | LVALUE of Tiger.Lvalve
+        | LVALUE of Tiger.Lvalue
         | CLASSFIELD of Tiger.Classfield
         | CLASSFIELDS of Tiger.Classfield list
         | TY of Tiger.Ty
+        | TYFIELD of {ID: Tiger.id, Type: Tiger.typeid}
+        | TYFIELDS of Tiger.tyfields 
 
-%noshift EOF
+%keyword ARRAY IF THEN ELSE WHILE FOR TO DO LET IN END OF BREAK NIL FUNCTION VAR TYPE PRIMITIVE CLASS METHOD NEW
+%start PROG
 
+%nonassoc LOWPREC
+%nonassoc DO OF FUNCTION TYPE TO
 %nonassoc ASSIGN
-%nonassoc WHILE FOR THEN
-%nonassoc ELSE
+%right THEN ELSE
+
 %left OR
 %left AND
-%nonassoc EQ NEQ GT LT GTE LTE
+%nonassoc GTE LTE EQ NEQ LT GT
 %left PLUS MINUS
 %left MUL DIV
 
@@ -82,19 +90,19 @@
 
 %%
 
-PROG    : EXPS      (Tiger.Exp)
-        | DECS      (Tiger.Dec)
+PROG    : EXP      (Tiger.Expr EXP)
+        | DECS      (print "here" ;Tiger.Decs DECS)
 
 EXPS    : (* empty *)           ( []                  )
         | EXP NEWLINE EXPS      ( EXP :: EXPS         )
         | EXP SEMICOLON EXPS    ( EXP :: EXPS         )
 
 DECS    : (* empty *)           ( []                  )
-        | EXP NEWLINE EXPS      ( DEC :: DECS         )
+        | DEC NEWLINE DECS      ( DEC :: DECS         )
 
 EXP     : NIL                   (Tiger.NIL)
-        | INT                   (Tiger.Int)
-        | STR                   (Tiger.Str)
+        | INT                   (Tiger.Int INT)
+        | STR                   (Tiger.Str STR)
 
         | LPARAN EXP RPARAN     ( EXP )
         
@@ -125,16 +133,16 @@ EXP     : NIL                   (Tiger.NIL)
         | NEW ID    (Tiger.New ID)
 
 LVALUE  : ID                        (Tiger.Var ID)
-        | LVALUE DOT ID             (Tiger.Member ID)
-        | LVALUE RBRACK EXP LBRACK  (Tiger.Ref (Lvalue, EXP))
+        | LVALUE DOT ID             (Tiger.Member (LVALUE, ID))
+        | LVALUE RBRACK EXP LBRACK  (Tiger.Ref (LVALUE, EXP))
 
-DEC     : TYPE ID EQ ID                                 (Tiger.TypeDec ({Name=ID1, Type=Tiger.TypeAlias ID2}))
+DEC     : TYPE ID EQ TY                                 (Tiger.TypeDec ({Name=ID1, Type=TY}))
         | VAR ID ASSIGN EXP                             (Tiger.VarDec({Name=ID, Type=NONE, Val=EXP}))
         | TYPE VAR ID ASSIGN EXP                        (Tiger.VarDec({Name=ID, Type=SOME(ID), Val=EXP}))
         | FUNCTION ID LPARAN TYFIELDS RPARAN ASSIGN EXP (Tiger.FunDec({Name=ID, ArgTypes=TYFIELDS, Type=NONE, Val=EXP}))
-        | CLASS ID LCURLY CLASSFIELDS RCURLY            (Tiger.ClassDef({Name=ID, Extends=None, Fields=CLASSFIELDS}))
+        | CLASS ID LCURLY CLASSFIELDS RCURLY            (Tiger.ClassDec({Name=ID, Extends=NONE, Fields=CLASSFIELDS}))
 
-CLASSFIELDS     : (* empty *)           ( [] )
+CLASSFIELDS     : (* empty *)                         ( [] )
                 | CLASSFIELD NEWLINE CLASSFIELDS      ( CLASSFIELD :: CLASSFIELDS         )
                 | CLASSFIELD SEMICOLON CLASSFIELDS    ( CLASSFIELD :: CLASSFIELDS         )
 
@@ -144,4 +152,9 @@ CLASSFIELD      : VAR ID ASSIGN EXP                             (Tiger.ClassVarD
 TY      : LCURLY TYFIELDS RCURLY                (Tiger.RecordType (TYFIELDS))
         | ARRAY OF ID                           (Tiger.ArrayType (ID))
         | CLASS LCURLY CLASSFIELDS RCURLY       (Tiger.ClassType({Extends= NONE, Fields=CLASSFIELDS}))
+
+TYFIELD : ID COLON ID                     ({ID=ID, Type=ID})
+
+TYFIELDS        : (* empty *)                   ( []                  )
+                | TYFIELD COMMA TYFIELDS        ( TYFIELD :: TYFIELDS         )
 
