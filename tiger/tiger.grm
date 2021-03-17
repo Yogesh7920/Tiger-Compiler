@@ -91,7 +91,7 @@ fun x _ = 1;
 %%
 
 PROG    : EXP      (Tiger.Expr EXP)
-        | DECS      (print "here" ;Tiger.Decs DECS)
+        | DECS      (Tiger.Decs DECS)
 
 EXPS    : (* empty *)           ( []                  )
         | EXP NEWLINE EXPS      ( EXP :: EXPS         )
