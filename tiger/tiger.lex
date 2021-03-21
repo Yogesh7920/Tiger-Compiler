@@ -13,8 +13,6 @@ type lexresult     = (svalue,pos) token
 fun lineRange l r = "line " ^ l
 fun err pos msg = print msg;
 
-
-
 fun eof   ()      = Tokens.EOF (!lineRef,!lineRef)
 
 fun charsToInt m (x :: xs) = charsToInt (10 * m + ord x - ord #"0") xs
@@ -29,22 +27,27 @@ val toInt        = toSigned o String.explode
 
 val newlineCount = List.length o List.filter (fn x => x = #"\n") o String.explode
 
+(* \n({ws}*\n)*    => (    let val old = !lineRef
+                        in updateLine (newlineCount yytext); Tokens.NEWLINE (old, !lineRef)
+                        end
+                    ); *)
+
 %%
 
 %header (functor TigerLexFun(structure Tokens : Tiger_TOKENS));
 ws    = [\ \t];
-digits = [0-9]+;
+digit = [0-9];
+digits = {digit}+;
 alpha = [a-zA-Z];
-id = {alpha}+;
+id = {alpha}({alpha}|{digit}|"_")*;
 
 %%
 
-"#".*\n         => ( updateLine 1; lex ());
+"/*".*\n        => ( updateLine 1; lex ());
 {ws}+           => ( lex() );
-\n({ws}*\n)*    => (    let val old = !lineRef
-                        in updateLine (newlineCount yytext); Tokens.NEWLINE (old, !lineRef)
-                        end
-                    );
+
+\n              => (updateLine 1; lex());
+
 
 "array"         => ( Tokens.ARRAY (!lineRef, !lineRef));
 "if"            => ( Tokens.IF (!lineRef, !lineRef));
@@ -90,6 +93,8 @@ id = {alpha}+;
 "|"          => ( Tokens.OR (!lineRef, !lineRef));
 ":="         => ( Tokens.ASSIGN (!lineRef, !lineRef));
 "="          => ( Tokens.EQ (!lineRef, !lineRef));
+":"          => ( Tokens.COLON (!lineRef, !lineRef));
+","          => ( Tokens.COMMA (!lineRef, !lineRef));
 
 {digits}      => ( Tokens.INT (toInt yytext, !lineRef, !lineRef));
 {id}          => ( Tokens.ID (yytext, !lineRef, !lineRef));

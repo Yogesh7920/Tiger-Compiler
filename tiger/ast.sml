@@ -23,7 +23,7 @@ datatype Prog    =  Expr of Exp        |
                     While of {Cond: Exp, Body: Exp}                         |
                     For of {Var: id, From: Exp, To: Exp, Body: Exp}         |
                     Break                                                   |
-                    LetExp of {Let: Dec list, In: Exp}                      |
+                    LetExp of {Let: Dec list, In: Exp list}                      |
                     Exps of Exp list
 
     and Lvalue  =   Var of id               |

@@ -1,9 +1,9 @@
 %%
 
-%eop EOF (* What token to use as end of parsing token              *)
-%verbose (* Generates a printed form of the table in expr.grm.desc *)
-%pure
 %name Tiger
+%eop EOF
+%verbose
+%pure
 %noshift EOF
 %pos int
 
@@ -28,7 +28,6 @@
     | DOT
     | ASSIGN
     | EOF
-    | NEWLINE
     | SEMICOLON
     | LPARAN
     | RPARAN
@@ -57,6 +56,7 @@
     | METHOD
     | PRIMITIVE
     | IMPORT
+    | NEWLINE
 
 %nonterm  PROG of Tiger.Prog
         | EXP of Tiger.Exp
@@ -69,6 +69,9 @@
         | TY of Tiger.Ty
         | TYFIELD of {ID: Tiger.id, Type: Tiger.typeid}
         | TYFIELDS of Tiger.tyfields 
+        | ARGS of Tiger.Exp list
+        | RECORDFIELD of {Key: Tiger.id, Val: Tiger.Exp}
+        | RECORDFIELDS of {Key: Tiger.id, Val: Tiger.Exp} list
 
 %keyword ARRAY IF THEN ELSE WHILE FOR TO DO LET IN END OF BREAK NIL FUNCTION VAR TYPE PRIMITIVE CLASS METHOD NEW
 %start PROG
@@ -76,6 +79,7 @@
 %nonassoc DO OF FUNCTION TYPE TO
 %nonassoc ASSIGN
 %right THEN ELSE
+%right ID LBRACK RBRACK
 
 %left OR
 %left AND
@@ -85,20 +89,31 @@
 
 %%
 
-PROG    : EXP      (Tiger.Expr EXP)
+PROG    : EXP       (Tiger.Expr EXP)
         | DECS      (Tiger.Decs DECS)
 
 EXPS    : (* empty *)           ( []                  )
-        | EXP NEWLINE EXPS      ( EXP :: EXPS         )
+        | EXP                   ( [EXP]               )
         | EXP SEMICOLON EXPS    ( EXP :: EXPS         )
 
+ARGS    : (* empty *)           ( []                  )
+        | EXP COMMA ARGS        ( EXP :: ARGS         )
+
+RECORDFIELD     : ID EQ EXP     ({Key=ID, Val=EXP})
+
+RECORDFIELDS    : (* empty *)   ([])
+                | RECORDFIELD   ([RECORDFIELD])
+                | RECORDFIELD COMMA RECORDFIELDS (RECORDFIELD :: RECORDFIELDS)
+
 DECS    : (* empty *)           ( []                  )
-        | DEC NEWLINE DECS      ( DEC :: DECS         )
+        | DEC DECS              ( DEC :: DECS         )
 
 EXP     : NIL                   (Tiger.NIL)
         | INT                   (Tiger.Int INT)
         | STR                   (Tiger.Str STR)
 
+        | ID LBRACK EXP RBRACK OF EXP   (Tiger.Array ({Type=ID, Len=EXP1, Val=EXP2}))
+        | ID LCURLY RECORDFIELDS RCURLY (Tiger.Record ({Type=ID, Val=RECORDFIELDS}))
         | LPARAN EXP RPARAN     ( EXP )
         
         | EXP PLUS EXP          (Tiger.Oper (EXP1, Tiger.Plus, EXP2))
@@ -121,30 +136,33 @@ EXP     : NIL                   (Tiger.NIL)
         | FOR ID ASSIGN EXP TO EXP DO EXP   (Tiger.For ({Var=ID, From=EXP1, To=EXP2, Body=EXP3}))
         | BREAK                             (Tiger.Break)
 
-        | LET DECS IN EXP END       (Tiger.LetExp ({Let=DECS, In=EXP}))
-        | ID LPARAN EXPS RPARAN     (Tiger.FunctionCall({Name=ID, Args=EXPS}))
+        | LET DECS IN EXPS END                  (Tiger.LetExp ({Let=DECS, In=EXPS}))
+        | ID LPARAN ARGS RPARAN                 (Tiger.FunctionCall({Name=ID, Args=ARGS}))
 
         | LVALUE    (Tiger.Lval LVALUE)
+        | LVALUE DOT ID LPARAN ARGS RPARAN      (Tiger.MethodCall({Obj=LVALUE, Name=ID, Args=ARGS}))
         | NEW ID    (Tiger.New ID)
+        | LVALUE ASSIGN EXP                     (Tiger.Assign(LVALUE, EXP))
 
 LVALUE  : ID                        (Tiger.Var ID)
         | LVALUE DOT ID             (Tiger.Member (LVALUE, ID))
-        | LVALUE RBRACK EXP LBRACK  (Tiger.Ref (LVALUE, EXP))
+        | LVALUE LBRACK EXP RBRACK  (Tiger.Ref (LVALUE, EXP))
 
-DEC     : TYPE ID EQ TY                                 (Tiger.TypeDec ({Name=ID1, Type=TY}))
-        | VAR ID ASSIGN EXP                             (Tiger.VarDec({Name=ID, Type=NONE, Val=EXP}))
-        | TYPE VAR ID ASSIGN EXP                        (Tiger.VarDec({Name=ID, Type=SOME(ID), Val=EXP}))
-        | FUNCTION ID LPARAN TYFIELDS RPARAN ASSIGN EXP (Tiger.FunDec({Name=ID, ArgTypes=TYFIELDS, Type=NONE, Val=EXP}))
-        | CLASS ID LCURLY CLASSFIELDS RCURLY            (Tiger.ClassDec({Name=ID, Extends=NONE, Fields=CLASSFIELDS}))
+DEC     : TYPE ID EQ TY                                         (Tiger.TypeDec ({Name=ID, Type=TY}))
+        | VAR ID ASSIGN EXP                                     (Tiger.VarDec({Name=ID, Type=NONE, Val=EXP}))
+        | VAR ID COLON ID ASSIGN EXP                            (Tiger.VarDec({Name=ID1, Type=SOME(ID2), Val=EXP}))
+        | FUNCTION ID LPARAN TYFIELDS RPARAN EQ EXP             (Tiger.FunDec({Name=ID, ArgTypes=TYFIELDS, Type=NONE, Val=EXP}))
+        | FUNCTION ID LPARAN TYFIELDS RPARAN COLON ID EQ EXP    (Tiger.FunDec({Name=ID1, ArgTypes=TYFIELDS, Type=SOME(ID2), Val=EXP}))
+        | CLASS ID LCURLY CLASSFIELDS RCURLY                    (Tiger.ClassDec({Name=ID, Extends=NONE, Fields=CLASSFIELDS}))
 
 CLASSFIELDS     : (* empty *)                         ( [] )
-                | CLASSFIELD NEWLINE CLASSFIELDS      ( CLASSFIELD :: CLASSFIELDS         )
                 | CLASSFIELD SEMICOLON CLASSFIELDS    ( CLASSFIELD :: CLASSFIELDS         )
 
 CLASSFIELD      : VAR ID ASSIGN EXP                             (Tiger.ClassVarDec({Name=ID, Type=NONE, Val=EXP}))
                 | METHOD ID LPARAN TYFIELDS RPARAN ASSIGN EXP   (Tiger.ClassMethodDec({Name=ID, ArgTypes=TYFIELDS, Type=NONE, Val=EXP}))
 
-TY      : LCURLY TYFIELDS RCURLY                (Tiger.RecordType (TYFIELDS))
+TY      : ID                                    (Tiger.TypeAlias (ID))
+        | LCURLY TYFIELDS RCURLY                (Tiger.RecordType (TYFIELDS))
         | ARRAY OF ID                           (Tiger.ArrayType (ID))
         | CLASS LCURLY CLASSFIELDS RCURLY       (Tiger.ClassType({Extends= NONE, Fields=CLASSFIELDS}))
 
