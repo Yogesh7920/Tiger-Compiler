@@ -22,6 +22,14 @@ ${EXE}: ${TIG}
 %.grm.sml: %.grm
 	mlyacc $<
 
+test%: $(EXE)
+	@echo "\n$@.tig\n"
+	@./$(EXE) tests/$@.tig
+
+tests: $(EXE)
+	@chmod +x .tests.sh
+	@./.tests.sh
+
 clean:
 	rm -f ${EXE} ${GEN}
 

@@ -6,7 +6,12 @@
 # Lab Assignments
 
 ## :white_check_mark:  Lab 3: Parser for Tiger language.
-    make -> builds the tiger compiler and results a executable tiger
+- make -> builds the tiger compiler and results a executable tiger
+- make run -> The executable will be executed.
+- make test{num} -> The test with test{num} will be executed
+- make tests -> All the test cases available will be executed. 
+
+        The AST is printed in the stdout.
 ## :white_check_mark:  Lab 2: AST for TIGER and MIPS 
     Make tc -> Compiles the AST of tiger.
     Make mips -> Compiles the AST of MIPS.

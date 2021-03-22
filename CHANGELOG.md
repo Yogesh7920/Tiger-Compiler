@@ -2,6 +2,9 @@
 
   _(date: yyyy-mm-dd)_
 
+## 2021-22-08
+- Printing AST Done
+- Multiple test case added
 ## 2021-16-08
 - Tiger Complied successfully.
 
