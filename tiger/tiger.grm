@@ -57,6 +57,7 @@
     | PRIMITIVE
     | IMPORT
     | NEWLINE
+    | UMINUS
 
 %nonterm  PROG of Tiger.Prog
         | EXP of Tiger.Exp
@@ -86,6 +87,7 @@
 %nonassoc GTE LTE EQ NEQ LT GT
 %left PLUS MINUS
 %left MUL DIV
+%left UMINUS
 
 %%
 
@@ -97,6 +99,7 @@ EXPS    : (* empty *)           ( []                  )
         | EXP SEMICOLON EXPS    ( EXP :: EXPS         )
 
 ARGS    : (* empty *)           ( []                  )
+        | EXP                   ( [EXP]               )
         | EXP COMMA ARGS        ( EXP :: ARGS         )
 
 RECORDFIELD     : ID EQ EXP     ({Key=ID, Val=EXP})
@@ -107,6 +110,7 @@ RECORDFIELDS    : (* empty *)   ([])
 
 DECS    : (* empty *)           ( []                  )
         | DEC DECS              ( DEC :: DECS         )
+        | DEC SEMICOLON DECS    ( DEC :: DECS         )
 
 EXP     : NIL                   (Tiger.NIL)
         | INT                   (Tiger.Int INT)
@@ -114,20 +118,21 @@ EXP     : NIL                   (Tiger.NIL)
 
         | ID LBRACK EXP RBRACK OF EXP   (Tiger.Array ({Type=ID, Len=EXP1, Val=EXP2}))
         | ID LCURLY RECORDFIELDS RCURLY (Tiger.Record ({Type=ID, Val=RECORDFIELDS}))
-        | LPARAN EXP RPARAN     ( EXP )
-        
-        | EXP PLUS EXP          (Tiger.Oper (EXP1, Tiger.Plus, EXP2))
-        | EXP MINUS EXP         (Tiger.Oper (EXP1, Tiger.Minus, EXP2))
-        | EXP MUL EXP           (Tiger.Oper (EXP1, Tiger.Mul, EXP2))
-        | EXP DIV EXP           (Tiger.Oper (EXP1, Tiger.Div, EXP2))
-        | EXP EQ EXP            (Tiger.Oper (EXP1, Tiger.Eq, EXP2))
-        | EXP NEQ EXP           (Tiger.Oper (EXP1, Tiger.Neq, EXP2))
-        | EXP GT EXP            (Tiger.Oper (EXP1, Tiger.Gt, EXP2))
-        | EXP LT EXP            (Tiger.Oper (EXP1, Tiger.Lt, EXP2))
-        | EXP GTE EXP           (Tiger.Oper (EXP1, Tiger.Gte, EXP2))
-        | EXP LTE EXP           (Tiger.Oper (EXP1, Tiger.Lte, EXP2))
-        | EXP AND EXP           (Tiger.Oper (EXP1, Tiger.And, EXP2))
-        | EXP OR EXP            (Tiger.Oper (EXP1, Tiger.Or, EXP2))
+        | LPARAN EXPS RPARAN            (Tiger.Exps (EXPS))
+
+        | EXP PLUS EXP                  (Tiger.Oper (EXP1, Tiger.Plus, EXP2))
+        | EXP MINUS EXP                 (Tiger.Oper (EXP1, Tiger.Minus, EXP2))
+        | EXP MUL EXP                   (Tiger.Oper (EXP1, Tiger.Mul, EXP2))
+        | EXP DIV EXP                   (Tiger.Oper (EXP1, Tiger.Div, EXP2))
+        | EXP EQ EXP                    (Tiger.Oper (EXP1, Tiger.Eq, EXP2))
+        | EXP NEQ EXP                   (Tiger.Oper (EXP1, Tiger.Neq, EXP2))
+        | EXP GT EXP                    (Tiger.Oper (EXP1, Tiger.Gt, EXP2))
+        | EXP LT EXP                    (Tiger.Oper (EXP1, Tiger.Lt, EXP2))
+        | EXP GTE EXP                   (Tiger.Oper (EXP1, Tiger.Gte, EXP2))
+        | EXP LTE EXP                   (Tiger.Oper (EXP1, Tiger.Lte, EXP2))
+        | EXP AND EXP                   (Tiger.Oper (EXP1, Tiger.And, EXP2))
+        | EXP OR EXP                    (Tiger.Oper (EXP1, Tiger.Or, EXP2))
+        | MINUS EXP %prec UMINUS        (Tiger.Oper (Tiger.Int(0), Tiger.Minus, EXP))
 
         | IF EXP THEN EXP           (Tiger.IfCond ({If=EXP1,Then=EXP2, Else=NONE}))
         | IF EXP THEN EXP ELSE EXP  (Tiger.IfCond ({If=EXP1,Then=EXP2, Else=SOME(EXP3)}))
@@ -156,6 +161,7 @@ DEC     : TYPE ID EQ TY                                         (Tiger.TypeDec (
         | CLASS ID LCURLY CLASSFIELDS RCURLY                    (Tiger.ClassDec({Name=ID, Extends=NONE, Fields=CLASSFIELDS}))
 
 CLASSFIELDS     : (* empty *)                         ( [] )
+                | CLASSFIELD CLASSFIELDS    ( CLASSFIELD :: CLASSFIELDS         )
                 | CLASSFIELD SEMICOLON CLASSFIELDS    ( CLASSFIELD :: CLASSFIELDS         )
 
 CLASSFIELD      : VAR ID ASSIGN EXP                             (Tiger.ClassVarDec({Name=ID, Type=NONE, Val=EXP}))
@@ -168,6 +174,7 @@ TY      : ID                                    (Tiger.TypeAlias (ID))
 
 TYFIELD : ID COLON ID                     ({ID=ID, Type=ID})
 
-TYFIELDS        : (* empty *)                   ( []                  )
-                | TYFIELD COMMA TYFIELDS        ( TYFIELD :: TYFIELDS         )
+TYFIELDS        : (* empty *)                   ( []                    )
+                | TYFIELD                       ( [TYFIELD]             )
+                | TYFIELD COMMA TYFIELDS        ( TYFIELD :: TYFIELDS   )
 

@@ -5,5 +5,3 @@ let
 in
 	arr1
 end
-
-var  table := recarr[2] of rec { val = 42 }
