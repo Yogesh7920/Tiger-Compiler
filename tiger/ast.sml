@@ -21,9 +21,9 @@ datatype Prog    =  Expr of Exp        |
                     Assign of Lvalue * Exp                                  |
                     IfCond of {If: Exp, Then: Exp, Else: Exp option}        |
                     While of {Cond: Exp, Body: Exp}                         |
-                    For of {Var: id, From: Exp, To: Exp, Body: Exp}         |
+                    For of {Name: id, From: Exp, To: Exp, Body: Exp}        |
                     Break                                                   |
-                    LetExp of {Let: Dec list, In: Exp list}                      |
+                    LetExp of {Let: Dec list, In: Exp list}                 |
                     Exps of Exp list
 
     and Lvalue  =   Var of id               |

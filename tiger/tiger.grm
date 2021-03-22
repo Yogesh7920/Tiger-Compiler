@@ -133,7 +133,7 @@ EXP     : NIL                   (Tiger.NIL)
         | IF EXP THEN EXP ELSE EXP  (Tiger.IfCond ({If=EXP1,Then=EXP2, Else=SOME(EXP3)}))
 
         | WHILE EXP DO EXP                  (Tiger.While ({Cond=EXP1, Body=EXP2}))
-        | FOR ID ASSIGN EXP TO EXP DO EXP   (Tiger.For ({Var=ID, From=EXP1, To=EXP2, Body=EXP3}))
+        | FOR ID ASSIGN EXP TO EXP DO EXP   (Tiger.For ({Name=ID, From=EXP1, To=EXP2, Body=EXP3}))
         | BREAK                             (Tiger.Break)
 
         | LET DECS IN EXPS END                  (Tiger.LetExp ({Let=DECS, In=EXPS}))

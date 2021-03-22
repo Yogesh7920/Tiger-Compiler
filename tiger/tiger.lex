@@ -40,6 +40,7 @@ digit = [0-9];
 digits = {digit}+;
 alpha = [a-zA-Z];
 id = {alpha}({alpha}|{digit}|"_")*;
+strings = "\""(\\.|[^\\"])*"\"";
 
 %%
 
@@ -98,4 +99,5 @@ id = {alpha}({alpha}|{digit}|"_")*;
 
 {digits}      => ( Tokens.INT (toInt yytext, !lineRef, !lineRef));
 {id}          => ( Tokens.ID (yytext, !lineRef, !lineRef));
+{strings}     => (Tokens.STR(String.substring(yytext, 1, String.size(yytext) - 2), yypos, yypos + size(yytext)));
 .             => (err yypos ("Invalid !! '" ^ yytext ^ "' found"); lex());

@@ -57,7 +57,7 @@ fun print_error (s,i:int,_) = TextIO.output(TextIO.stdErr,
 					    "Error, line " ^ (Int.toString i) ^ ", " ^ s ^ "\n")
 
 val (program,_) = TigerParser.parse (0,thisLexer,print_error,()) (* parsing *)
-val _           = TextIO.output(TextIO.stdOut, "Success\n")
-			       (* writing out the executable (in this case rp Tigeression ) *)
+val _           = TextIO.output(TextIO.stdOut, "Success\nThe following is the AST\n")
+val _           = (PrintAST.print_ast program)
 
 end
