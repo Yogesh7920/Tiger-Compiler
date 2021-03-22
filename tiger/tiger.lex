@@ -101,5 +101,5 @@ strings = "\""(\\.|[^\\"])*"\"";
 
 <INITIAL> {digits}      => ( Tokens.INT (toInt yytext, !lineRef, !lineRef));
 <INITIAL> {id}          => ( Tokens.ID (yytext, !lineRef, !lineRef));
-<INITIAL> {strings}     => (Tokens.STR(String.substring(yytext, 1, String.size(yytext) - 2), yypos, yypos + size(yytext)));
+<INITIAL> {strings}     => ( Tokens.STR(String.substring(yytext, 1, String.size(yytext) - 2), yypos, yypos + size(yytext)));
 .                       => (err yypos ("Invalid !! '" ^ yytext ^ "' found"); lex());
