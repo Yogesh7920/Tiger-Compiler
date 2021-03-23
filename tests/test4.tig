@@ -1,15 +1,13 @@
-/* define valid recursive types */
+/* define a recursive function */
 let
-/* define a list */
-type intlist = {hd: int, tl: intlist} 
 
-/* define a tree */
-type tree ={key: int, children: treelist}
-type treelist = {hd: tree, tl: treelist}
-
-var lis:intlist := intlist { hd=0, tl= nil } 
+/* calculate n! */
+function nfactor(n: int): int =
+		if  n = 0 
+			then 1
+			else n * nfactor(n-1)
 
 in
-	lis
+	nfactor(10)
 end
 

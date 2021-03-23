@@ -1,11 +1,8 @@
-/* define a recursive function */
+/* a record type and a record variable */
 let
-/* calculate n! */
-function nfactor(n: int): int =
-		if  n = 0 
-			then 1
-			else n * nfactor(n-1)
-
+	type  rectype = {name:string, age:int}
+	var rec1:rectype := rectype {name="Nobody", age=1000}
 in
-	nfactor(10)
+	rec1.name := "Somebody";
+	rec1
 end

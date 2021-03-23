@@ -8,8 +8,8 @@
 ## :white_check_mark:  Lab 3: Parser for Tiger language.
 - make -> builds the tiger compiler and results a executable tiger
 - make run -> The executable will be executed.
-- make test{num} -> The test with test{num} will be executed
-- make tests -> All the test cases available will be executed. 
+- make test{num} -> The test with test{num}.tig will be executed. E.g: make test1
+- make tests -> All the test cases (6) available will be executed. 
 
         The AST is printed in the stdout.
 ## :white_check_mark:  Lab 2: AST for TIGER and MIPS 
