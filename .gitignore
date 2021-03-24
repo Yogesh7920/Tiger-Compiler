@@ -10,7 +10,11 @@
 
 sml_test/
 src/main
-tiger/ast
+tiger/tiger
+tiger/tiger.grm.desc
+tiger/tiger.grm.sig
+tiger/tiger.grm.sml
+tiger/tiger.lex.sml
 target/mips
 Dockerfile
 
