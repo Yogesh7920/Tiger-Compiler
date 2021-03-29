@@ -2,18 +2,21 @@
 
   _(date: yyyy-mm-dd)_
 
-## 2021-22-08
+## 2021-03-29
+- Logic for indentation added.
+- Color code added for different words.
+## 2021-03-22
 - 51 Test cases added
 - Printing AST Done
 - Multiple test case added
-## 2021-16-08
+## 2021-03-16
 - Tiger Complied successfully.
 
-## 2021-15-08
+## 2021-03-15
 
 - Tiger lexer done (tiger/tiger.lex)
 - Tiger parser done (tiger/tiger.grm) 
-## 2021-14-08
+## 2021-03-14
 ### Added
 - Tiger Parser Added
 - Tiger Lexer Added

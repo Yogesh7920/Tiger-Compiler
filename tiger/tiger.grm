@@ -176,7 +176,7 @@ TY      : ID                                    (Tiger.TypeAlias (ID))
         | ARRAY OF ID                           (Tiger.ArrayType (ID))
         | CLASS LCURLY CLASSFIELDS RCURLY       (Tiger.ClassType({Extends= NONE, Fields=CLASSFIELDS}))
 
-TYFIELD : ID COLON ID                           ({ID=ID, Type=ID})
+TYFIELD : ID COLON ID                           ({ID=ID1, Type=ID2})
 
 TYFIELDS        : (* empty *)                   ( []                    )
                 | TYFIELD                       ( [TYFIELD]             )

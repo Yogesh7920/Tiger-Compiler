@@ -1,5 +1,6 @@
 EXE := tiger/tiger
 TIG := $(addprefix tiger/, tiger.mlb ast.sml tiger.grm.sml tiger.lex.sml tiger.sml)
+TAR := $(addprefix target/, pp.sml)
 GEN := $(addprefix tiger/, *.grm.sml *.lex.sml *.grm.desc *.grm.sig)
 
 .PHONY: all clean tests test
@@ -13,7 +14,7 @@ tc: ${EXE}
 run: ${EXE}
 	./${EXE}
 
-${EXE}: ${TIG}
+${EXE}: ${TIG} ${TAR}
 	mlton -output $@ $<
 
 %.lex.sml: %.lex

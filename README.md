@@ -4,15 +4,16 @@
     Roll Number: 111801047
 
 # Lab Assignments
-
-## :white_check_mark:  Lab 3: Parser for Tiger language.
+## Lab 4: Pretty printing for Tiger.
+- check the target/pp.sml for the color code of different words.
+## Lab 3: Parser for Tiger language.
 - make -> builds the tiger compiler and results a executable tiger
 - make run -> The executable will be executed.
 - make test{num} -> The test with test{num}.tig will be executed. E.g: make test1
 - make tests -> All the test cases (6) available will be executed. 
 
         The AST is printed in the stdout.
-## :white_check_mark:  Lab 2: AST for TIGER and MIPS 
+## Lab 2: AST for TIGER and MIPS 
     Make tc -> Compiles the AST of tiger.
     Make mips -> Compiles the AST of MIPS.
     Make all -> Does both (along with lab-0).
@@ -20,7 +21,7 @@
 
     The tiger/ast.sml has test case implemented below. 
 
-## :white_check_mark:  Lab 1: Updating the reverse polish compiler
+## Lab 1: Updating the reverse polish compiler
     Working Dir: ./reverse-polish
 ### Experiment-3
     Change the expr.grm file by commenting out the lines %left (The comment syntax is the same as SML)

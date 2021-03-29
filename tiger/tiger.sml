@@ -52,12 +52,15 @@ val thisLexer = case CommandLine.arguments() of
 		 |  _   => (TextIO.output(TextIO.stdErr, "usage: ec file"); OS.Process.exit OS.Process.failure)
 
 
-
+fun print_str s = TextIO.output (TextIO.stdOut, s)
 fun print_error (s,i:int,_) = TextIO.output(TextIO.stdErr,
 					    "Error, line " ^ (Int.toString i) ^ ", " ^ s ^ "\n")
 
 val (program,_) = TigerParser.parse (0,thisLexer,print_error,()) (* parsing *)
-val _           = TextIO.output(TextIO.stdOut, "Success\nThe following is the AST\n")
+val _ = print_str "\027[1;37mSuccess\027[0m\n\n"
+val _           = (PP.compile program)
+val _ = print_str "\n\027[1;37mAST\027[0m\n"
 val _           = (PrintAST.print_ast program)
+
 
 end

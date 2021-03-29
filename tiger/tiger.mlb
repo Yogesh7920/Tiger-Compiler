@@ -1,8 +1,10 @@
 $(SML_LIB)/basis/basis.mlb
 $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
 
+
 ast.sml
 printast.sml
+../target/pp.sml
 tiger.grm.sig
 tiger.grm.sml
 tiger.lex.sml
