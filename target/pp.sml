@@ -38,12 +38,13 @@ struct
     and print_str s = TextIO.output (TextIO.stdOut, s)
     and print_strs [] = []
         | print_strs (x::xs) = (print_str x) :: (print_strs xs)
-    and ast_to_str (Expr exp) = ([make_indent()] @ exp_to_str exp @ ["\n"])
-        | ast_to_str (Decs decs) = ([make_indent()] @ decs_to_str decs @ ["\n"])
+
+    and ast_to_str (Expr exp) = (exp_to_str exp @ ["\n"])
+        | ast_to_str (Decs decs) = (decs_to_str decs @ ["\n"])
     and exps_to_str [] = []
         | exps_to_str (x::xs) =   (case xs of
-                                    [] => [make_indent()] @ (exp_to_str x) @ (exps_to_str xs) @ ["\n"]
-                                    | _ => [make_indent()] @ (exp_to_str x) @ ["\n"] @ (exps_to_str xs)
+                                    [] => (exp_to_str x) @ (exps_to_str xs) @ ["\n"]
+                                    | _ => (exp_to_str x) @ ["\n"] @ (exps_to_str xs)
                                 )
     and args_to_str [] = []
         | args_to_str (x::xs) =   (case xs of
@@ -88,8 +89,10 @@ struct
                                         end
         | exp_to_str (IfCond ie) =    let
                                         val {If, Then, Else} = ie
+
                                         val cond_val = exp_to_str If
                                         val succ_val = exp_to_str Then
+
                                     in
                                         case Else of
                                         SOME t => [(keyword "if") ^ " ("] @ cond_val @ [")\n" ^ keyword "then "] @ succ_val @ ["\n" ^ (keyword "else ")] @ (exp_to_str t)
@@ -108,17 +111,15 @@ struct
                                     val exit_val = exp_to_str To
                                     val body_val = exp_to_str Body
                                 in
-                                    [(keyword "for") ^ "(", variable Name, ":= "] @ exp @ [keyword " to "] @ exit_val @ [keyword "\n do "] @ body_val
+                                    [(keyword "for") ^ "(", variable Name, ":= "] @ exp @ [keyword " to "] @ exit_val @ [keyword "\n" ^ "do "] @ body_val
                                 end
         | exp_to_str Break = ["break\n"]
         | exp_to_str (LetExp l) =   let
                                         val {Let, In} = l
-                                        val _ = level_inc()
                                         val decs_val = decs_to_str Let
                                         val body_val = exps_to_str In
-                                        val _ = level_dec()
                                     in
-                                        [make_indent()] @ [keyword "let", "\n"] @ decs_val @ [keyword "in", "\n"] @ body_val @ [keyword "end", "\n"]
+                                        [keyword "let", "\n"] @ decs_val @ [(keyword "in"), "\n"] @ body_val @ [keyword "end", "\n"]
                                     end
         | exp_to_str (Oper operation) = let
                                         val (left, oper, right) = operation
@@ -126,19 +127,19 @@ struct
                                     in
                                         (exp_to_str left) @ opval @ (exp_to_str right)
                                     end
-        | exp_to_str (NIL) = ["nil"]
+        | exp_to_str (NIL) = [digit "nil"]
     
     and decs_to_str [] = []
         | decs_to_str (x::xs) =   (case xs of
-                                    [] => [make_indent()] @ (dec_to_str x) @  (decs_to_str xs)
-                                    | _ => [make_indent()] @ (dec_to_str x) @ ["\n"] @  (decs_to_str xs)
+                                    [] => (dec_to_str x) @  (decs_to_str xs)
+                                    | _ => (dec_to_str x) @ ["\n"] @ (decs_to_str xs)
                                 )
     and dec_to_str (VarDec v) =   let
                                     val {Name, Type, Val} = v;
                                     val exp = exp_to_str Val
                                 in
                                     case Type of
-                                    SOME t => ([keyword "var ", variable Name, " : ", type_ t, " := "] @ exp @ ["\n"])
+                                    SOME t => ([keyword "var ", variable Name, ": ", type_ t, " := "] @ exp @ ["\n"])
                                     | NONE => ([keyword "var ", variable Name, " := "] @ exp @ ["\n"])
                                 end
         | dec_to_str (ClassDec c) =   let
@@ -146,8 +147,8 @@ struct
                                         val cfs = ["["] @  classfields_to_str Fields @ ["]"]
                                     in
                                         case Extends of
-                                        SOME e => (["ClassDec({name = ", variable Name, ", Extends = ",  e, ", Fields = "] @ cfs @ ["})"])
-                                        | NONE => (["ClassDec({name = ", variable Name, ", Fields = "] @ cfs @ ["})"])
+                                        SOME e => (["class ", variable Name, ", extends ",  e, ", {"] @ cfs @ ["}"])
+                                        | NONE => (["class ", variable Name, ", {"] @ cfs @ ["}"])
                                     end
 
         | dec_to_str (TypeDec t) =    let
@@ -162,7 +163,7 @@ struct
                                             val tyfields = tyfields_to_str ArgTypes
                                         in
                                             case Type of
-                                            SOME t => ([variable Name, "("] @ tyfields @ [") : ", t])
+                                            SOME t => ([variable Name, "("] @ tyfields @ ["): ", t])
                                             | NONE => ([variable Name, "("] @ tyfields @ [")"])
                                         end
     
@@ -212,13 +213,14 @@ struct
                                 [variable ID, ":", type_ Type]
                             end
 
-    and fundectype_to_str what f =    let
+    and fundectype_to_str what f =  let
                                         val {Name, ArgTypes, Type, Val} = f
                                         val tyfields = tyfields_to_str ArgTypes
+
                                         val exp = exp_to_str Val
                                     in
                                         case Type of
-                                        SOME t => ([what, " ", variable Name, "("] @ tyfields @ [") : ",  t] @ [" =\n"] @ exp)
+                                        SOME t => ([what, " ", variable Name, "("] @ tyfields @ ["): ", type_ t] @ [" =\n"] @ exp)
                                         | NONE => ([what, " ", variable Name, "("] @ tyfields @ [") =\n"] @ exp)
                                     end
 
@@ -234,8 +236,8 @@ struct
                                             val cfs = ["["] @  classfields_to_str Fields @ ["]"]
                                         in
                                             case Extends of
-                                            SOME e => (["ClassType({Extends = ",  e, ", Fields = "] @ cfs @ ["})"])
-                                            | NONE => (["ClassType({Fields = "] @ cfs @ ["})"])
+                                            SOME e => (["class extends = ", e, ", {"] @ cfs @ ["}"])
+                                            | NONE => (["class {"] @ cfs @ ["}"])
                                         end
 
     and tyfields_to_str [] = []

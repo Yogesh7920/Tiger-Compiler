@@ -57,7 +57,7 @@ fun print_error (s,i:int,_) = TextIO.output(TextIO.stdErr,
 					    "Error, line " ^ (Int.toString i) ^ ", " ^ s ^ "\n")
 
 val (program,_) = TigerParser.parse (0,thisLexer,print_error,()) (* parsing *)
-val _ = print_str "\027[1;37mSuccess\027[0m\n\n"
+val _ = print_str "\027[1;37mPretty-Print\027[0m\n\n"
 val _           = (PP.compile program)
 val _ = print_str "\n\027[1;37mAST\027[0m\n"
 val _           = (PrintAST.print_ast program)
