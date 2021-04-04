@@ -275,7 +275,7 @@ struct
             val final_str = expand exps 
             val _ = dec_level()
         in
-            "(\n" ^ final_str ^ indent() ^ ")"
+            indent() ^ "(\n" ^ final_str ^ indent() ^ ")"
         end
 
     and decs_to_str [] = ""
