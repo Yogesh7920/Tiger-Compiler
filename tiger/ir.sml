@@ -1,8 +1,8 @@
-signature TREE =
+signature Tree =
 sig
 
-    datatype binop = PLUS | MINUS | MUL | DIV | .....
-    datatype relop = EQ | NE | LT | GT | LE | LT ...
+    datatype binop = PLUS | MINUS | MUL | DIV | And | Or  
+    datatype relop = EQ | NE | LT | GT | LE | LT 
 
     datatype expr = CONST of int                    | 
                     NAME  of Temp.label             | 
