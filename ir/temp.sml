@@ -15,7 +15,7 @@ structure Temp :> TEMP = struct
     val nextLabel = ref 0
     val nextTemp  = ref 0
 
-    fun newlabel _ = (* stuff here *) 
-    fun newtemp  _ = (* stuff here *)
+    fun newlabel () = nextLabel := nextLabel + 1
+    fun newtemp  () = nextTemp  := nextTemp  + 1
     
 end
