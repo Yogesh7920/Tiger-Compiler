@@ -36,4 +36,4 @@ clean:
 	rm -f ${EXE} ${GEN}
 
 docker:
-	@docker container run -it --rm -v $(shell pwd):/code -w /code piyushkurur/compilers bash
+	@docker container run -it --rm -v $(shell pwd):/code -w /code yogesh7920/compilers_sml bash
