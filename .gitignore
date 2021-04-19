@@ -9,6 +9,8 @@
 .history/
 
 sml_test/
+reverse-polish/
+
 src/main
 tiger/tiger
 tiger/tiger.grm.desc
