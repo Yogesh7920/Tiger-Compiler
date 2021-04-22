@@ -2,6 +2,8 @@
 
   _(date: yyyy-mm-dd)_
 
+## 2021-04-21
+- Commandline arguments added for tiger executable
 ## 2021-04-19
 - The basic requirements of tree.sml and temp.sml done
 - The code has been refactored as per the instructions.pdf

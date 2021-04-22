@@ -3,6 +3,10 @@
     Name: Yogesh R
     Roll Number: 111801047
 
+# Command-line argumants
+- --pp -> pretty print the .tig code.
+- --ast -> print the ast of the code. 
+
 # Lab Assignments
 ## Lab 4: Pretty printing for Tiger.
 - check the target/pp.sml for the color code of different words.
