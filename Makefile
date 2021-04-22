@@ -1,4 +1,4 @@
-EXE := tiger/tiger
+EXE := tc
 MAIN := $(addprefix ./, tc.mlb tc.sml)
 TIG := $(addprefix tiger/, ast.sml tiger.grm.sml tiger.lex.sml)
 TAR := $(addprefix target/, pp.sml)
@@ -7,9 +7,6 @@ GEN := $(addprefix tiger/, *.grm.sml *.lex.sml *.grm.desc *.grm.sig)
 .PHONY: all clean tests test
 
 all: ${EXE}
-	@echo "Make done Successfully, do 'make run' to execute the executable"
-
-tc: ${EXE}
 	@echo "Make done Successfully, do 'make run' to execute the executable"
 
 run: ${EXE}
