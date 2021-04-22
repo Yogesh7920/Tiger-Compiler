@@ -12,7 +12,7 @@ sml_test/
 reverse-polish/
 
 src/main
-tiger/tiger
+tc
 tiger/tiger.grm.desc
 tiger/tiger.grm.sig
 tiger/tiger.grm.sml
