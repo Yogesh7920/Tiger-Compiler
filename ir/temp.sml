@@ -2,13 +2,13 @@ signature TEMP =
 sig
     type label
     type temp
-    val newlabel : unit -> label  (* generate a new label *)
+    val newlabel : unit -> label
     val newtemp  : unit -> temp
 end
 structure Temp :> TEMP = struct
 
 
-    type label = int (* 2⁶⁴ = ∞ many variables *)
+    type label = int
     type temp  = int
 
 
