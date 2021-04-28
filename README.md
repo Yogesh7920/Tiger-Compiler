@@ -8,6 +8,9 @@
 - --ast -> print the ast of the code. 
 
 # Lab Assignments
+
+## Lab 5: IR Tree representation
+- Tree representation, and canonization done.
 ## Lab 4: Pretty printing for Tiger.
 - check the target/pp.sml for the color code of different words.
 ## Lab 3: Parser for Tiger language.

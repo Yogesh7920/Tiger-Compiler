@@ -1,7 +1,8 @@
 # Change Log 
 
   _(date: yyyy-mm-dd)_
-
+## 2021-04-27
+- Canonization done. 
 ## 2021-04-21
 - Commandline arguments added for tiger executable
 ## 2021-04-19
