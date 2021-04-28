@@ -39,21 +39,22 @@ structure Canon = struct
                     end |
                 reorder [] = (Tree.EXP (Tree.CONST 0), [])
 
-            fun reorder_exp (el, build) = 
+            and reorder_exp (el, build) = 
                                         let
-                                            (stms, el_) = reorder el
+                                            val (stms, el_) = reorder el
                                         in
                                             (stms, build el_)
                                         end
-            fun reorder_stm (el, build) = 
+            and reorder_stm (el, build) = 
                                         let
-                                            (stms, el_) = reorder el
+                                            val (stms, el_) = reorder el
                                         in
                                             helper(stms, build el_)
                                         end
-
-            fun do_exp (Tree.BINOP(op, a, b)) = reorder_exp([a, b], fn [a, b] => Tree.BINOP(op, a, b))  |
-                do_exp (Tree.MEM(a)) = reorder_exp([a], fn [a] => Tree.MEM(a))                          |
+            (* Most places in do_exp & do_smt will have raise errors to avoid pat matching warning as 
+                We know that only the req. pat will be passed *)
+            and do_exp (Tree.BINOP(oper, a, b)) = reorder_exp ([a, b], fn [a, b] => Tree.BINOP (oper, a, b)  | _ => raise Error)    |
+                do_exp (Tree.MEM(a)) = reorder_exp([a], fn [a] => Tree.MEM(a) | _ => raise Error)                                  |
                 do_exp (Tree.ESEQ(s, e)) = 
                                         let
                                             val stms = do_stm s
@@ -61,18 +62,18 @@ structure Canon = struct
                                         in
                                             (helper(stms_, stms), e)
                                         end |
-                do_exp (Tree.CALL (e, el)) = reorder_exp (e :: el, fn e :: el => Tree.CALL (e, el))     |
-                do_exp e        = reorder_exp ([], fn [] => e)
+                do_exp (Tree.CALL (e, el)) = reorder_exp (e :: el, fn e :: el => Tree.CALL (e, el) | _ => raise Error)     |
+                do_exp e        = reorder_exp ([], fn [] => e | _ => raise Error)
 
-            fun do_stm (Tree.JUMP(e, labs)) = reorder_stm ([e], fn [e] => Tree.JUMP(e, labs))    |
-                do_stm (Tree.CJUMP(p, a, b, t, f)) = reorder_stm ([a, b], fn [a, b] => Tree.CJUMP(p, a, b, t, f))    |
-                do_stm (Tree.MOVE (Tree.TEMP t, Tree.CALL (e, el))) = reorder_stm (e :: el, fn e :: el => Tree.MOVE (Tree.TEMP t, Tree.CALL (e, el))) |
-                do_stm (Tree.MOVE (Tree.TEMP t, b)) = reorder_stm ([b], fn [b] => Tree.MOVE (Tree.TEMP t, b)) |
-                do_stm (Tree.MOVE (Tree.MEM e, b)) = reorder_stm ([e, b], fn [e, b] => Tree.MOVE(Tree.MEM e, b))  |
+            and do_stm (Tree.JUMP(e, labs)) = reorder_stm ([e], fn [e] => Tree.JUMP(e, labs) | _ => raise Error)    |
+                do_stm (Tree.CJUMP(p, a, b, t, f)) = reorder_stm ([a, b], fn [a, b] => Tree.CJUMP(p, a, b, t, f) | _ => raise Error)    |
+                do_stm (Tree.MOVE (Tree.TEMP t, Tree.CALL (e, el))) = reorder_stm (e :: el, fn e :: el => Tree.MOVE (Tree.TEMP t, Tree.CALL (e, el)) | _ => raise Error) |
+                do_stm (Tree.MOVE (Tree.TEMP t, b)) = reorder_stm ([b], fn [b] => Tree.MOVE (Tree.TEMP t, b) | _ => raise Error) |
+                do_stm (Tree.MOVE (Tree.MEM e, b)) = reorder_stm ([e, b], fn [e, b] => Tree.MOVE(Tree.MEM e, b) | _ => raise Error)  |
                 do_stm (Tree.MOVE (Tree.ESEQ (s, e), b)) = do_stm (Tree.SEQ (s, Tree.MOVE (e, b)))  |
                 do_stm (Tree.SEQ(a, b)) = helper(do_stm a, do_stm b)    |
-                do_stm (T.EXP e) = reorder_stm ([e], fn [e] => T.EXP e) |
-                do_stm s = reorder_stm ([], fn [] => s)
+                do_stm (Tree.EXP e) = reorder_stm ([e], fn [e] => Tree.EXP e | _ => raise Error) |
+                do_stm s = reorder_stm ([], fn [] => s | _ => raise Error)
 
 
             fun linear (Tree.SEQ(a, b), l)  = linear(a, linear(b, l)) |
@@ -104,10 +105,6 @@ structure Canon = struct
 
     fun traceSchedule (blks, done) =  
         let
-            fun get (item, xs) = 
-                case (List.find (fn (x, _) => (x=item)) xs) of
-                    SOME(l, b) => SOME(b) |
-                    _ => NONE
 
             fun addBlock (b as (Tree.LABEL l :: _), hm) = IntMap.insert (hm, l, b)   |
                 addBlock (_, hm) = hm
@@ -118,7 +115,8 @@ structure Canon = struct
                             val (hs, l) = sepLast xs
                         in
                             (x::hs, l)
-                        end
+                        end |
+                sepLast [] = raise Error
             (*  bs has the other blocks
                 hm stands for hashmap *)
             fun trace (hm, b as (Tree.LABEL lab :: _), bs) = 
@@ -133,31 +131,34 @@ structure Canon = struct
                                     _ => b @ getnext (hm, bs)
                             )   |
 
-                        trace_helper (hs, Tree.CJUMP (op, x, y, t, f)) =    
+                        trace_helper (hs, Tree.CJUMP (oper, x, y, t, f)) =    
                             (
                                 case (IntMap.find(hm, t), IntMap.find(hm, f)) of
 
-                                    (_, SOME(b_)) => b @ trace(xs, b_, bs)      | 
-                                    (SOME(b_), _) => hs @ [Tree.CJUMP (Tree.notRelop op, x, y, f, t)] @ trace (hm, b_, bs) 
+                                    (_, SOME(b_)) => b @ trace(hm, b_, bs)      | 
+                                    (SOME(b_), _) => hs @ [Tree.CJUMP (Tree.notRelop oper, x, y, f, t)] @ trace (hm, b_, bs) 
                                                             (* Since only false label can be added below*) | 
                                     (_) => 
                                         let
                                             val r = Temp.newlabel()
                                         in
-                                            hs @ [Tree.CJUMP (op, x, y, t, r), Tree.LABEL r, Tree.JUMP (Tree.NAME f, [f])] @ getnext (hm, bs)
+                                            hs @ [Tree.CJUMP (oper, x, y, t, r), Tree.LABEL r, Tree.JUMP (Tree.NAME f, [f])] @ getnext (hm, bs)
                                         end
                             )    |
 
-                        trace_helper (hs, Tree.JUMP _) = b @ getnext (hm, bs)
+                        trace_helper (hs, Tree.JUMP _) = b @ getnext (hm, bs)   |
+                        trace_helper _ = raise Error (* Since basic Blocking is done before every block must end with a jump*)
                 in
                     trace_helper(hs, l)
-                end
+                end |
+                trace (_, _, _) = raise Error (* Since basic Blocking is done before every block must start with a label*)
             (* Find the next block (from already seen) to trace *)
-            and getnext (hm, (b as Tree.LABEL lab :: _))::bs = 
+            and getnext (hm, (b as (Tree.LABEL lab :: _))::bs) = 
                                     (case IntMap.find (hm, lab) of
-                                        SOME(_) => trace (xs, b, bs)    |
-                                        _ => getnext (xs, bs))          |
-                getnext (hm, []) = []
+                                        SOME(_) => trace (hm, b, bs)    |
+                                        _ => getnext (hm, bs))          |
+                getnext (hm, []) = []   |
+                getnext _ = raise Error (* This fun is called only with the hashmap *)
         in
             getnext (List.foldr addBlock IntMap.empty blks, blks) @ [Tree.LABEL done]
         end

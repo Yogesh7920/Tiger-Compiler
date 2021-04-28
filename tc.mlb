@@ -1,6 +1,6 @@
 $(SML_LIB)/basis/basis.mlb
 $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
-
+$(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
 
 tiger/ast.sml
 tiger/printast.sml
@@ -8,4 +8,7 @@ target/pp.sml
 tiger/tiger.grm.sig
 tiger/tiger.grm.sml
 tiger/tiger.lex.sml
+ir/temp.sml
+ir/tree.sml
+ir/canon.sml
 tc.sml

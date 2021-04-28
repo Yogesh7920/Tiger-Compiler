@@ -2,8 +2,8 @@ structure Tree =
 struct
 
     datatype expr   =   CONST of int                    | 
-                        NAME  of Temp.label             | 
-                        TEMP  of Temp.temp              | 
+                        NAME  of int                    | 
+                        TEMP  of int                    | 
                         BINOP of binop * expr * expr    |
                         MEM   of expr                   |
                         CALL  of expr * expr list       |
@@ -11,10 +11,10 @@ struct
 
     and stm        =    MOVE  of expr * expr                                    | 
                         EXP   of expr                                           | 
-                        JUMP  of expr * Temp.label list                         |
-                        CJUMP of relop * expr * expr * Temp.label * Temp.label  |
+                        JUMP  of expr * int list                         |
+                        CJUMP of relop * expr * expr * int * int  |
                         SEQ of stm * stm                                      |
-                        LABEL of Temp.label
+                        LABEL of int
     
     and binop       =   PLUS | MINUS | MUL | DIV | And | Or 
     and relop       =   EQ | NE | LT | GT | LE | GE 
