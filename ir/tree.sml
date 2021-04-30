@@ -1,5 +1,6 @@
 structure Tree =
 struct
+    exception Error
 
     datatype expr   =   CONST of int                    | 
                         NAME  of int                    | 
@@ -25,5 +26,8 @@ struct
         notRelop    GT = LE |
         notRelop    LE = GT |
         notRelop    GE = LT
+
+    fun list_to_SEQ []       = raise Error   |
+        list_to_SEQ (x::xs) = SEQ (x, list_to_SEQ xs)
 
 end
