@@ -1,6 +1,9 @@
 structure Translate =
 struct
     exception Error
+    exception NotSupported
+
+    open Tiger;
 
     datatype exp =  Ex of Tree.expr     |
                     Nx of Tree.stm      |
@@ -36,6 +39,11 @@ struct
         unCx (Cx c) = c             |
         unCx _ = raise Error
 
-
-    
+    fun compile prog        = (
+        case prog of
+            Expr (NIL)     => Tree.CONST 0      | 
+            Expr (Int i)   => Tree.CONST 1      |
+            Expr (Str s)   => raise NotSupported  |
+            _              => raise NotSupported
+        )
 end
