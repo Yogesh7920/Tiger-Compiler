@@ -52,7 +52,7 @@ val _	= if (ast) then (PrintAST.print_ast program) else [()]
 val _ = if (pp) then (print_str "\n\027[1;37mPretty-Print\027[0m\n\n") else ()
 val _ = if (pp) then (PP.compile program) else ()
 
-val tree = Translate.compile program
+val tree = Translate.compile Env.empty program
 
 val _ = if (ir) then (print_str "\n\027[1;37mIntermediate-Representation\027[0m\n\n") else ()
 val _ = if (ir) then (PrintIR.compile tree) else ()

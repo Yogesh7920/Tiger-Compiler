@@ -7,6 +7,9 @@
 # Change Log 
 
   _(date: yyyy-mm-dd)_
+
+### 2021-05-01
+- Tiger to Tree, basic binary added
 ### 2021-04-30
 - Printing IR added
 - Basic AST -> IR added.
