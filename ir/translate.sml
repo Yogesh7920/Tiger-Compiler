@@ -14,7 +14,7 @@ struct
 
     datatype exp =  Ex of T.expr     |
                     Nx of T.stm      |
-                    Cx of int * int -> T.stm
+                    Cx of int * int -> T.stm (* Temp.label * Temp.label *)
     
     (* Converting exp -> T.expr *)
     fun unEx (Ex e) =  e                            |
@@ -101,6 +101,7 @@ struct
         | Oper x => binop_to_ir env x
         | Lval l => lvalue_to_ir env l
         | LetExp le => letexp_to_ir env le
+        | Exps es => exps_to_ir env es
         | IfCond x => raise NotSupported "If Condition"
         | Str _ => raise NotSupported "strings"
         |   _   => raise NotSupported "Expression"
