@@ -7,7 +7,7 @@ structure Translate =
 struct
     exception Error
     exception NotSupported of string
-    exception NotDefined
+    exception NotDefined of string
 
     open Tiger;
     structure T = Tree;
@@ -48,40 +48,62 @@ struct
 
     fun compile prog  = (
         case prog of
-          Expr exp => exp_to_ir exp
-        | Decs ds  => unEx (Nx (T.list_to_SEQ (decs_to_ir ds)))
+          Expr exp => exp_to_ir Env.empty exp
+        | Decs ds  => unEx (Nx (T.list_to_SEQ (decs_to_ir Env.empty ds)))
     )
 
-    and decs_to_ir [] = []  |
-        decs_to_ir xs = List.map dec_to_ir xs
+    and decs_to_ir env [] = []  |
+        decs_to_ir env [x] = 
+            let
+              val (env_, dec) = dec_to_ir env x
+            in
+              [dec]
+            end    |
+        decs_to_ir env (x::xs) = 
+            let
+              val (env_, dec) = dec_to_ir env x
+            in
+              dec :: (decs_to_ir env_ xs)
+            end
 
-    and dec_to_ir dec = (
+    and dec_to_ir env dec = (
         case dec of
           VarDec ({Name, Type, Val}) =>  
               let
                 val t = Temp.newtemp()
-                val v = exp_to_ir Val
+                val v = exp_to_ir env Val
+                val env_ = Env.insert(env, Name, t)
               in
-                T.MOVE (T.TEMP t, v)
+                (env_, T.MOVE (T.TEMP t, v))
               end
         | _ => raise NotSupported "Declaration"
     )
 
-    and exp_to_ir exp = (
+    and exp_to_ir env exp = (
         case exp of
           NIL => T.CONST 0
         | Int i => T.CONST i
-        | Oper x => (binop_to_ir x)
+        | Oper x => (binop_to_ir env x)
         | IfCond x => raise NotSupported "If Condition"
-        | Lval l => raise NotSupported "lvalue"
+        | Lval l => lvalue_to_ir env l
         | Str _ => raise NotSupported "strings"
         |   _   => raise NotSupported "Expression"
     )
 
-    and binop_to_ir (e1, oper, e2) = 
+    and lvalue_to_ir env lval = (
+        case lval of
+          Var (id) => (
+              case Env.find(env, id) of
+                SOME(t) => T.TEMP t
+              | _ => raise NotDefined id
+          ) 
+        | _    => raise NotSupported "lvalue"
+    )
+
+    and binop_to_ir env (e1, oper, e2) = 
       let
-        val e1_ = exp_to_ir e1
-        val e2_ = exp_to_ir e2
+        val e1_ = exp_to_ir env e1
+        val e2_ = exp_to_ir env e2
       in
           (
         case oper of
