@@ -3,8 +3,8 @@ struct
     exception Error
 
     datatype expr   =   CONST of int                    | 
-                        NAME  of int                    | 
-                        TEMP  of int                    | 
+                        NAME  of int  (* Temp.label *)  | 
+                        TEMP  of int  (* Temp.temp *)   | 
                         BINOP of binop * expr * expr    |
                         MEM   of expr                   |
                         CALL  of expr * expr list       |
@@ -12,10 +12,10 @@ struct
 
     and stm        =    MOVE  of expr * expr                        | 
                         EXP   of expr                               | 
-                        JUMP  of expr * int list                    |
-                        CJUMP of relop * expr * expr * int * int    |
+                        JUMP  of expr * int list  (* Temp.label list *) |
+                        CJUMP of relop * expr * expr * int * int  (* Temp.label, Temp.label *)  |
                         SEQ of stm * stm                            |
-                        LABEL of int
+                        LABEL of int    (* Temp.label *)
     
     and binop       =   PLUS | MINUS | MUL | DIV | AND | OR 
     and relop       =   EQ | NE | LT | GT | LE | GE 

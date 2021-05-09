@@ -49,21 +49,27 @@ struct
     fun compile prog  = (
         case prog of
           Expr exp => exp_to_ir Env.empty exp
-        | Decs ds  => unEx (Nx (T.list_to_SEQ (decs_to_ir Env.empty ds)))
+        | Decs ds  => 
+            let
+              val (_, decs) = (decs_to_ir Env.empty ds)
+            in
+              unEx (Nx (T.list_to_SEQ decs))
+            end
     )
 
-    and decs_to_ir env [] = []  |
+    and decs_to_ir env [] = (env, [])  |
         decs_to_ir env [x] = 
             let
               val (env_, dec) = dec_to_ir env x
             in
-              [dec]
+              (env_, [dec])
             end    |
         decs_to_ir env (x::xs) = 
             let
               val (env_, dec) = dec_to_ir env x
+              val (ev, decs) = decs_to_ir env_ xs
             in
-              dec :: (decs_to_ir env_ xs)
+              (ev, (dec :: decs))
             end
 
     and dec_to_ir env dec = (
@@ -84,8 +90,8 @@ struct
           NIL => T.CONST 0
         | Int i => T.CONST i
         | Oper x => (binop_to_ir env x)
-        | IfCond x => raise NotSupported "If Condition"
         | Lval l => lvalue_to_ir env l
+        | IfCond x => raise NotSupported "If Condition"
         | Str _ => raise NotSupported "strings"
         |   _   => raise NotSupported "Expression"
     )
