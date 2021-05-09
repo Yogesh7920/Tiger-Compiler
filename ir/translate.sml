@@ -7,9 +7,10 @@ structure Translate =
 struct
     exception Error
     exception NotSupported of string
+    exception NotDefined
 
     open Tiger;
-    structure T = Tree; 
+    structure T = Tree;
 
     datatype exp =  Ex of T.expr     |
                     Nx of T.stm      |
@@ -17,7 +18,7 @@ struct
     
     (* Converting exp -> T.expr *)
     fun unEx (Ex e) =  e                            |
-        unEx (Nx s) = T.ESEQ(s, T.CONST 0)    |
+        unEx (Nx s) = T.ESEQ(s, T.CONST 0)          |
         unEx (Cx c) = 
             let 
                 val r = Temp.newtemp()
@@ -45,35 +46,52 @@ struct
         unCx (Cx c) = c             |
         unCx _ = raise Error
 
-    fun compile env prog    = (
-      case prog of
-        Expr exp => unEx (exp_to_ir env exp)
-      | Decs ds  => raise NotSupported "Declaration"
+    fun compile prog  = (
+        case prog of
+          Expr exp => exp_to_ir exp
+        | Decs ds  => unEx (Nx (T.list_to_SEQ (decs_to_ir ds)))
     )
 
-    and exp_to_ir env exp = (
+    and decs_to_ir [] = []  |
+        decs_to_ir xs = List.map dec_to_ir xs
+
+    and dec_to_ir dec = (
+        case dec of
+          VarDec ({Name, Type, Val}) =>  
+              let
+                val t = Temp.newtemp()
+                val v = exp_to_ir Val
+              in
+                T.MOVE (T.TEMP t, v)
+              end
+        | _ => raise NotSupported "Declaration"
+    )
+
+    and exp_to_ir exp = (
         case exp of
-          NIL => Ex (T.CONST 0)
-        | Int i => Ex (T.CONST i)
-        | Oper x => (binop_to_ir env x)
+          NIL => T.CONST 0
+        | Int i => T.CONST i
+        | Oper x => (binop_to_ir x)
+        | IfCond x => raise NotSupported "If Condition"
+        | Lval l => raise NotSupported "lvalue"
         | Str _ => raise NotSupported "strings"
         |   _   => raise NotSupported "Expression"
     )
 
-    and binop_to_ir env (e1, oper, e2) = 
+    and binop_to_ir (e1, oper, e2) = 
       let
-        val e1_ = unEx (exp_to_ir env e1)
-        val e2_ = unEx (exp_to_ir env e2)
+        val e1_ = exp_to_ir e1
+        val e2_ = exp_to_ir e2
       in
           (
         case oper of
-          Plus => Ex (T.BINOP (T.PLUS, e1_, e2_))
-        | Minus => Ex (T.BINOP (T.MINUS, e1_, e2_))
-        | Mul => Ex (T.BINOP (T.MUL, e1_, e2_))
-        | Div => Ex (T.BINOP (T.DIV, e1_, e2_))
-        | And => Ex (T.BINOP (T.AND, e1_, e2_))
-        | Or => Ex (T.BINOP (T.OR, e1_, e2_))
-        | _  => raise NotSupported "operator"
+          Plus  => T.BINOP (T.PLUS, e1_, e2_)
+        | Minus => T.BINOP (T.MINUS, e1_, e2_)
+        | Mul   => T.BINOP (T.MUL, e1_, e2_)
+        | Div   => T.BINOP (T.DIV, e1_, e2_)
+        | And   => T.BINOP (T.AND, e1_, e2_)
+        | Or    => T.BINOP (T.OR, e1_, e2_)
+        | _     => raise NotSupported "operator"
       )
       end
       

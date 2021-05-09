@@ -27,7 +27,8 @@ struct
         notRelop    LE = GT |
         notRelop    GE = LT
 
-    fun list_to_SEQ []       = raise Error   |
+    fun list_to_SEQ []       = raise Error      |
+        list_to_SEQ [x]      = x                |
         list_to_SEQ (x::xs) = SEQ (x, list_to_SEQ xs)
 
 end
