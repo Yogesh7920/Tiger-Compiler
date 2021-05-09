@@ -85,16 +85,34 @@ struct
         | _ => raise NotSupported "Declaration"
     )
 
+    and exps_to_ir env xs = 
+        let
+          fun helper []       = T.CONST 0       |
+              helper [x]      = exp_to_ir env x |
+              helper (x::xs)  = T.ESEQ (T.EXP (exp_to_ir env x), helper xs)
+        in
+          helper xs
+        end
+
     and exp_to_ir env exp = (
         case exp of
           NIL => T.CONST 0
         | Int i => T.CONST i
-        | Oper x => (binop_to_ir env x)
+        | Oper x => binop_to_ir env x
         | Lval l => lvalue_to_ir env l
+        | LetExp le => letexp_to_ir env le
         | IfCond x => raise NotSupported "If Condition"
         | Str _ => raise NotSupported "strings"
         |   _   => raise NotSupported "Expression"
     )
+
+    and letexp_to_ir env ({Let, In}) = 
+        let
+          val (env_, decs) = decs_to_ir env Let
+          val e = exps_to_ir env_ In
+        in
+          T.ESEQ (T.list_to_SEQ decs, e)
+        end
 
     and lvalue_to_ir env lval = (
         case lval of
@@ -111,7 +129,7 @@ struct
         val e1_ = exp_to_ir env e1
         val e2_ = exp_to_ir env e2
       in
-          (
+      (
         case oper of
           Plus  => T.BINOP (T.PLUS, e1_, e2_)
         | Minus => T.BINOP (T.MINUS, e1_, e2_)
@@ -122,5 +140,4 @@ struct
         | _     => raise NotSupported "operator"
       )
       end
-      
 end
