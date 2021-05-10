@@ -107,6 +107,29 @@ struct
         |   _   => raise NotSupported "Expression"
     )
 
+    and ifcond_to_ir env ({If, Then, Else}) = 
+        let
+          val join = Temp.newlabel()
+          val if_ = unNx (Ex (exp_to_ir env If))
+          val (t, f) = (
+            case if_ of
+              T.CJUMP(_, _, _, t_, f_) => (t_, f_)
+            | _ => raise Error
+          )
+          val then_ = unNx (Ex (exp_to_ir env Then))
+          val else_ = case Else of
+            SOME (e) => unNx (Ex (exp_to_ir env e))
+          | _ => T.EXP(T.CONST 0)
+
+          val stm = T.list_to_SEQ ([
+            if_, T.LABEL t, then_, 
+            T.JUMP (T.NAME join, [join]), 
+            T.LABEL f, else_, T.LABEL join
+          ])
+        in
+          unEx (Nx stm)
+        end
+
     and letexp_to_ir env ({Let, In}) = 
         let
           val (env_, decs) = decs_to_ir env Let
@@ -138,7 +161,25 @@ struct
         | Div   => T.BINOP (T.DIV, e1_, e2_)
         | And   => T.BINOP (T.AND, e1_, e2_)
         | Or    => T.BINOP (T.OR, e1_, e2_)
-        | _     => raise NotSupported "operator"
+        | relop => 
+          (
+            let
+              val t = Temp.newlabel()
+              val f = Temp.newlabel()
+              val oper_ = (
+                case relop of
+                      Eq => T.EQ
+                    | Neq => T.NE
+                    | Gt => T.GT
+                    | Lt => T.LT
+                    | Gte => T.GE
+                    | Lte => T.LE
+                    | _ => raise NotDefined "binary operator"
+                )
+            in
+              unEx (Nx (T.CJUMP(oper_, e1_, e2_, t, f)))
+            end
+          )
       )
       end
 end
