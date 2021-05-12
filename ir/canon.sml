@@ -162,4 +162,6 @@ structure Canon = struct
         in
             getnext (List.foldr addBlock IntMap.empty blks, blks) @ [Tree.LABEL done]
         end
+
+    (* fun canonize *)
 end

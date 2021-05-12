@@ -12,6 +12,8 @@ struct
     exception NotSupported
     exception NotSupportedString
     exception NotSupportedBinop
+    exception NotSupportedArray
+    exception NotSupportedRecord
     exception NotSupportedDeclaration
     exception NotSupportedExpression
     exception NotSupportedLvalue
@@ -43,7 +45,7 @@ struct
             end  
 
     fun unNx (Ex e) =   (case e of
-                        T.ESEQ(s, _) => s               | 
+                        T.ESEQ(s, _) => s               |
                         _ => raise StmConvError  )      |
         unNx (Nx s) = s                     |
         unNx (Cx c) = unNx (Ex (unEx (Cx c)))
@@ -56,12 +58,12 @@ struct
 
     fun compile prog  = (
         case prog of
-          Expr exp => exp_to_ir Env.empty exp
+          Expr exp => unNx (Ex (exp_to_ir Env.empty exp))
         | Decs ds  => 
             let
               val (_, decs) = (decs_to_ir Env.empty ds)
             in
-              unEx (Nx (T.list_to_SEQ decs))
+              unNx (Nx (T.list_to_SEQ decs))
             end
     )
 
@@ -113,6 +115,8 @@ struct
         | IfCond x => ifcond_to_ir env x
         | For x => forloop_to_ir env x
         | While x => whileloop_to_ir env x
+        | Array x => raise NotSupportedArray
+        | Record x => raise NotSupportedRecord
         | Str _ => raise NotSupportedString
         |   _   => raise NotSupportedExpression
     )
