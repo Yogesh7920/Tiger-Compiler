@@ -6,7 +6,15 @@ structure Env = RedBlackMapFn (struct
 structure Translate =
 struct
     exception Error
-    exception NotSupported of string
+    exception StmConvError
+    exception NotCJUMP
+
+    exception NotSupported
+    exception NotSupportedString
+    exception NotSupportedBinop
+    exception NotSupportedDeclaration
+    exception NotSupportedExpression
+    exception NotSupportedLvalue
     exception NotDefined of string
 
     open Tiger;
@@ -35,8 +43,8 @@ struct
             end  
 
     fun unNx (Ex e) =   (case e of
-                        T.ESEQ(s, temp) => s | 
-                        _ => raise Error  )     |
+                        T.ESEQ(s, _) => s               | 
+                        _ => raise StmConvError  )      |
         unNx (Nx s) = s                     |
         unNx (Cx c) = unNx (Ex (unEx (Cx c)))
     
@@ -82,7 +90,7 @@ struct
               in
                 (env_, T.MOVE (T.TEMP t, v))
               end
-        | _ => raise NotSupported "Declaration"
+        | _ => raise NotSupportedDeclaration
     )
 
     and exps_to_ir env xs = 
@@ -102,29 +110,22 @@ struct
         | Lval l => lvalue_to_ir env l
         | LetExp le => letexp_to_ir env le
         | Exps es => exps_to_ir env es
-        | IfCond x => raise NotSupported "If Condition"
-        | Str _ => raise NotSupported "strings"
-        |   _   => raise NotSupported "Expression"
+        | IfCond x => ifcond_to_ir env x
+        | Str _ => raise NotSupportedString
+        |   _   => raise NotSupportedExpression
     )
 
     and ifcond_to_ir env ({If, Then, Else}) = 
         let
           val join = Temp.newlabel()
           val if_ = unNx (Ex (exp_to_ir env If))
-          val (t, f) = (
-            case if_ of
-              T.CJUMP(_, _, _, t_, f_) => (t_, f_)
-            | _ => raise Error
-          )
-          val then_ = unNx (Ex (exp_to_ir env Then))
+          val then_ = T.EXP (exp_to_ir env Then)
           val else_ = case Else of
-            SOME (e) => unNx (Ex (exp_to_ir env e))
+            SOME (e) => T.EXP (exp_to_ir env e)
           | _ => T.EXP(T.CONST 0)
 
           val stm = T.list_to_SEQ ([
-            if_, T.LABEL t, then_, 
-            T.JUMP (T.NAME join, [join]), 
-            T.LABEL f, else_, T.LABEL join
+            if_, then_, else_
           ])
         in
           unEx (Nx stm)
@@ -145,7 +146,7 @@ struct
                 SOME(t) => T.TEMP t
               | _ => raise NotDefined id
           ) 
-        | _    => raise NotSupported "lvalue"
+        | _    => raise NotSupportedLvalue
     )
 
     and binop_to_ir env (e1, oper, e2) = 
@@ -174,10 +175,10 @@ struct
                     | Lt => T.LT
                     | Gte => T.GE
                     | Lte => T.LE
-                    | _ => raise NotDefined "binary operator"
+                    | _ => raise NotSupportedBinop
                 )
             in
-              unEx (Nx (T.CJUMP(oper_, e1_, e2_, t, f)))
+              unEx (Cx (fn (t, f) => T.CJUMP(oper_, e1_, e2_, t, f)))
             end
           )
       )

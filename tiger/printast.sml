@@ -83,7 +83,7 @@ struct
                                         val (left, oper, right) = operation
                                         val opval = (oper_to_str oper)
                                     in
-                                        ["("] @ (exp_to_str left) @ [", "] @ opval @ [", "] @ (exp_to_str right) @ [")"]
+                                        ["Oper("] @ (exp_to_str left) @ [", "] @ opval @ [", "] @ (exp_to_str right) @ [")"]
                                     end
         | exp_to_str (NIL) = ["NIL"]
     
