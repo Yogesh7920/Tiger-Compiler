@@ -119,13 +119,19 @@ struct
         let
           val join = Temp.newlabel()
           val if_ = unNx (Ex (exp_to_ir env If))
+          val (t, f) = 
+              case if_ of
+                T.CJUMP(_, _, _, t_, f_) => (t_,f_)
+              | _ => raise Error
+
           val then_ = T.EXP (exp_to_ir env Then)
           val else_ = case Else of
             SOME (e) => T.EXP (exp_to_ir env e)
           | _ => T.EXP(T.CONST 0)
 
           val stm = T.list_to_SEQ ([
-            if_, then_, else_
+            if_, T.LABEL t, then_, T.JUMP (T.NAME join, [join]), 
+            T.LABEL f, else_, T.LABEL join
           ])
         in
           unEx (Nx stm)
@@ -178,7 +184,7 @@ struct
                     | _ => raise NotSupportedBinop
                 )
             in
-              unEx (Cx (fn (t, f) => T.CJUMP(oper_, e1_, e2_, t, f)))
+              unEx (Nx (T.CJUMP(oper_, e1_, e2_, t, f)))
             end
           )
       )
