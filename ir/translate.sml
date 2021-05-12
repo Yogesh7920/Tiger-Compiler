@@ -111,9 +111,54 @@ struct
         | LetExp le => letexp_to_ir env le
         | Exps es => exps_to_ir env es
         | IfCond x => ifcond_to_ir env x
+        | For x => forloop_to_ir env x
+        | While x => whileloop_to_ir env x
         | Str _ => raise NotSupportedString
         |   _   => raise NotSupportedExpression
     )
+
+    and whileloop_to_ir env ({Cond, Body})  = 
+        let
+          val cond_ = unNx (Ex (exp_to_ir env Cond))
+          val (t, f) = case cond_ of
+                          T.CJUMP(_, _, _, t_, f_) => (t_, f_)
+                        | _ => raise NotCJUMP
+          val body_ = exp_to_ir env Body
+          val seq = T.list_to_SEQ ([
+            T.LABEL f,
+            T.EXP body_,
+            cond_,
+            T.LABEL t
+          ])
+        in
+          unEx (Nx seq)
+        end
+
+    and forloop_to_ir env ({Name, From, To, Body}) = 
+        let
+          val (env_, dec) = let
+                              val t = Temp.newtemp()
+                              val v = exp_to_ir env From
+                              val e_ = Env.insert(env, Name, t)
+                            in
+                              (e_, T.MOVE (T.TEMP t, v))
+                            end
+          val loop = Temp.newlabel()
+          val done = Temp.newlabel()
+          val reg = case dec of
+                      T.MOVE (T.TEMP t, v) => t
+                    | _ => raise Error
+          val inc = T.MOVE (T.TEMP reg, T.BINOP(T.PLUS, T.TEMP reg, T.CONST 1))
+          val to_ = exp_to_ir env To
+          val body_ = exp_to_ir env_ Body
+          val seq = T.list_to_SEQ ([
+            dec, T.LABEL loop, T.EXP(body_), inc, 
+            T.CJUMP(T.EQ, T.TEMP reg, to_, done, loop),
+            T.LABEL done
+          ])
+        in
+          unEx (Nx (seq))
+        end
 
     and ifcond_to_ir env ({If, Then, Else}) = 
         let
