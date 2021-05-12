@@ -47,7 +47,7 @@ struct
     fun unNx (Ex e) =   (case e of
                         T.ESEQ(s, _) => s               |
                         _ => raise StmConvError  )      |
-        unNx (Nx s) = s                     |
+        unNx (Nx s) = s                                 |
         unNx (Cx c) = unNx (Ex (unEx (Cx c)))
     
     fun unCx (Ex (T.CONST 0)) = (fn (t,f) => T.JUMP (T.NAME f, [f]))   |
@@ -85,13 +85,21 @@ struct
     and dec_to_ir env dec = (
         case dec of
           VarDec ({Name, Type, Val}) =>  
-              let
-                val t = Temp.newtemp()
-                val v = exp_to_ir env Val
-                val env_ = Env.insert(env, Name, t)
-              in
-                (env_, T.MOVE (T.TEMP t, v))
-              end
+            (
+              case Val of
+                Array (x) => raise NotSupportedArray
+              | _ => 
+                (
+                    let
+                      val t = Temp.newtemp()
+                      val v = exp_to_ir env Val
+                      val env_ = Env.insert(env, Name, t)
+                    in
+                      (env_, T.MOVE (T.TEMP t, v))
+                    end
+                )
+              
+            )
         | _ => raise NotSupportedDeclaration
     )
 
@@ -115,7 +123,6 @@ struct
         | IfCond x => ifcond_to_ir env x
         | For x => forloop_to_ir env x
         | While x => whileloop_to_ir env x
-        | Array x => raise NotSupportedArray
         | Record x => raise NotSupportedRecord
         | Str _ => raise NotSupportedString
         |   _   => raise NotSupportedExpression
