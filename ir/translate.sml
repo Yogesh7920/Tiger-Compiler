@@ -58,7 +58,7 @@ struct
 
     fun compile prog  = (
         case prog of
-          Expr exp => unNx (Ex (exp_to_ir Env.empty exp))
+          Expr exp => T.EXP (exp_to_ir Env.empty exp)
         | Decs ds  => 
             let
               val (_, decs) = (decs_to_ir Env.empty ds)
