@@ -160,10 +160,22 @@ struct
         | IfCond x => ifcond_to_ir env x
         | For x => forloop_to_ir env x
         | While x => whileloop_to_ir env x
+        | FunctionCall x => funcCall env x
         | Record x => raise NotSupportedRecord
         | Str _ => raise NotSupportedString
         |   _   => raise NotSupportedExpression
     )
+
+    and funcCall env ({Name, Args}) = 
+        let
+          val lab = case Env.find (env, Name) of
+                    SOME(x) => x
+                  | _       => raise NotDefined Name
+          fun helper [] = []  |
+              helper (x::xs) = (exp_to_ir env x) :: (helper xs)
+        in
+          T.CALL (T.NAME lab, (helper Args))
+        end
 
     and whileloop_to_ir env ({Cond, Body})  = 
         let
