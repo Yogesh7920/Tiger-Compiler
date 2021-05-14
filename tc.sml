@@ -36,7 +36,8 @@ val (flag, file) = arg_parser args
 val pp = element_exists ("--pp", flag)
 val ast = element_exists ("--ast", flag)
 val ir = element_exists ("--ir", flag)
-val default = not(pp) andalso not(ast) andalso not(ir)
+val cflag = element_exists ("--nc", flag)
+val default = not(pp) andalso not(ast) andalso not(ir) andalso not(cflag)
 
 val thisLexer = case file of
 			[]  => makeTigerLexer TextIO.stdIn
@@ -53,11 +54,14 @@ val _	= if (ast) then (PrintAST.print_ast program) else [()]
 val _ = if (pp) then (print_str "\n\027[1;37mPretty-Print\027[0m\n\n") else ()
 val _ = if (pp) then (PP.compile program) else ()
 
-val tree = if (ir) then Translate.compile program else Tree.EXP(Tree.CONST 0)
-(* val canonTree = if (ir) then Canon.canonize tree else [Tree.EXP(Tree.CONST 0)] *)
+val tree = if (ir orelse cflag orelse default) then Translate.compile program else Tree.EXP(Tree.CONST 0)
+val tree = if (ir orelse default) then Canon.canonize tree else tree
 
 val _ = if (ir) then (print_str "\n\027[1;37mIntermediate-Representation\027[0m\n\n") else ()
 val _ = if (ir) then (Printtree.printtree (TextIO.stdOut, tree)) else ()
+
+val _ = if (cflag) then (print_str "\n\027[1;37mIntermediate-Representation (without canonization)\027[0m\n\n") else ()
+val _ = if (cflag) then (Printtree.printtree (TextIO.stdOut, tree)) else ()
 
 (* default *)
 val _ = if (default) then (print_str "\n\027[1;37mIntermediate-Representation\027[0m\n\n") else ()

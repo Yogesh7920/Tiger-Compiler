@@ -54,6 +54,13 @@ structure T = Tree
         fun say s =  TextIO.output(outstream,s)
         fun sayln s= (say s; say "\n") 
 
+        fun specialTemp x = 
+                case x of
+                29 => "sp"  | 
+                30 => "fp"  |
+                31 => "ret" |
+                num => "t" ^ Int.toString num
+
         fun indent 0 = ()
             | indent i = (say " "; indent(i-1))
 
@@ -73,7 +80,8 @@ structure T = Tree
         and exp(T.BINOP(p,a,b),d) = (indent d; say "BINOP("; binop p; sayln ",";
                         exp(a,d+1); sayln ","; exp(b,d+1); say ")")
             | exp(T.MEM(e),d) = (indent d; sayln "MEM("; exp(e,d+1); say ")")
-            | exp(T.TEMP t, d) = (indent d; say "TEMP t"; say(Int.toString t))
+            | exp(T.TEMP t, d) = (indent d; say ("TEMP " ^ specialTemp t))
+
             | exp(T.ESEQ(s,e),d) = (indent d; sayln "ESEQ("; stm(s,d+1); sayln ",";
                     exp(e,d+1); say ")")
             | exp(T.NAME lab, d) = (indent d; say "NAME "; say (Int.toString lab))

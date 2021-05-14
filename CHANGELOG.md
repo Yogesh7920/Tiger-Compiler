@@ -1,8 +1,17 @@
-# Git hashes
+# Git hashes and run info
 
-- Lab 5 - bc973183548e1137373bfea74dc1fffd6646bf2c
-- Lab 4 - efa79880cbbe92b8c4987919ffb829cadc248496
-- Lab 3 - 8c5496bc044730d0a331c37e51cddb230eafa324
+Lab 5 <br>
+    
+    how to run: no output, check tree.sml, temp.sml and canon.sml
+    hash: bc973183548e1137373bfea74dc1fffd6646bf2c
+    
+Lab 4
+    
+    efa79880cbbe92b8c4987919ffb829cadc248496
+
+Lab 3
+
+    8c5496bc044730d0a331c37e51cddb230eafa324
 
 # Change Log 
 

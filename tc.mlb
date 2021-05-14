@@ -6,6 +6,7 @@ tiger/ast.sml
 tiger/tiger.grm.sig
 tiger/tiger.grm.sml
 tiger/tiger.lex.sml
+ir/frame.sml
 ir/temp.sml
 ir/tree.sml
 ir/translate.sml

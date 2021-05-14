@@ -163,5 +163,5 @@ structure Canon = struct
             getnext (List.foldr addBlock IntMap.empty blks, blks) @ [Tree.LABEL done]
         end
 
-    fun canonize prog = traceSchedule (basicBlocks (linearize prog))
+    fun canonize prog = Tree.list_to_SEQ (traceSchedule (basicBlocks (linearize prog)))
 end

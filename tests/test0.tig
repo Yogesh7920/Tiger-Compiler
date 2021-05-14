@@ -1,5 +1,5 @@
-let
-    var x := 3
-in
-    x + 2
-end
+function f(a: int) = (
+    3
+)
+
+var x := 3

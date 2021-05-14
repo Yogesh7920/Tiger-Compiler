@@ -21,10 +21,14 @@ struct
 
     open Tiger;
     structure T = Tree;
+    structure F = Frame;
 
     datatype exp =  Ex of T.expr     |
                     Nx of T.stm      |
                     Cx of int * int -> T.stm (* Temp.label * Temp.label *)
+
+    fun pushstack n = T.MOVE (T.TEMP F.stackptr, T.BINOP (T.MINUS, T.TEMP F.stackptr, T.CONST n))
+    and popstack n = T.MOVE (T.TEMP F.stackptr, T.BINOP (T.PLUS, T.TEMP F.stackptr, T.CONST n))
     
     (* Converting exp -> T.expr *)
     fun unEx (Ex e) =  e                            |
@@ -100,6 +104,39 @@ struct
                 )
               
             )
+        | FunDec ({Name, ArgTypes, Type, Val}) => (
+            let
+              val env_ = 
+                  let
+                    fun extract_ID e ({ID, Type}) = 
+                                        let
+                                          val t = Temp.newtemp()
+                                        in
+                                          Env.insert (e, ID, t)
+                                        end
+                    fun update_env e [] = e |
+                        update_env e (x::xs) = update_env (extract_ID e x) xs
+                  in
+                    update_env Env.empty ArgTypes 
+                  end
+              val body_ = exp_to_ir env_ Val
+              (* val numOfVar = Env.numItems (env_) *)
+              val lab = Temp.newlabel()
+              val env_ = Env.insert (env, Name, lab)
+            in
+              (env_, T.list_to_SEQ ([
+                T.LABEL lab, 
+                pushstack (1),
+                T.MOVE (T.MEM (T.TEMP F.stackptr), T.TEMP F.frameptr), (* prev. fp is stored *)
+                T.MOVE (T.TEMP F.frameptr, T.TEMP F.stackptr), (* fp is current sp *)
+                T.EXP(body_),
+                T.MOVE (T.TEMP F.stackptr, T.TEMP F.frameptr), (* poping this func frame *)
+                popstack (1),
+                T.MOVE (T.TEMP F.frameptr, T.TEMP F.stackptr) (* restoring the prev fp *)
+              ]))
+            end
+        )
+            
         | _ => raise NotSupportedDeclaration
     )
 
@@ -178,7 +215,7 @@ struct
           val (t, f) = 
               case if_ of
                 T.CJUMP(_, _, _, t_, f_) => (t_,f_)
-              | _ => raise Error
+              | _ => raise NotCJUMP
 
           val then_ = T.EXP (exp_to_ir env Then)
           val else_ = case Else of
