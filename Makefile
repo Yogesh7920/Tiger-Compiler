@@ -11,7 +11,7 @@ all: ${EXE}
 	There are five ways to execute \n \
 	\t 1. \033[;36m ./tc filepath \033[0m , this prints the IR \n \
 	\t 2. \033[;36m ./tc --ir filepath \033[0m, this also prints the IR \n \
-	\t 3. \033[;36m ./tc --c filepath \033[0m, this prints the canonized IR \n \
+	\t 3. \033[;36m ./tc --can filepath \033[0m, this prints the canonized IR \n \
 	\t 4. \033[;36m ./tc --pp filepath \033[0m, this pretty prints the tiger code'\n \
 	\t 5. \033[;36m ./tc --ast filepath \033[0m, this prints the AST \n\n"
 

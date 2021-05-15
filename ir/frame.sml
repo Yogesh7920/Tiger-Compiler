@@ -1,6 +1,6 @@
 structure Frame =
 struct
-    val wordSize = 64
+    val wordSize = 4 (* 4 bytes, 32 bits *)
     val stackptr = 29
     val frameptr = 30
     val retadrs = 31

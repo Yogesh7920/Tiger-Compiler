@@ -28,7 +28,7 @@ fun print_error (s,i:int,_) = TextIO.output(TextIO.stdErr,
 fun arg_parser 	[]  = 	([], [])	|
     arg_parser  xs	=	List.partition (fn x => (
 		(x="--pp") orelse (x="--ast") orelse 
-		(x="--ir") orelse (x="--c")
+		(x="--ir") orelse (x="--can")
 		)) xs
 
 fun element_exists (item, xs) = List.exists (fn x => (x=item)) xs;
@@ -39,7 +39,7 @@ val (flag, file) = arg_parser args
 val pp = element_exists ("--pp", flag)
 val ast = element_exists ("--ast", flag)
 val ir = element_exists ("--ir", flag)
-val cflag = element_exists ("--c", flag)
+val cflag = element_exists ("--can", flag)
 val default = not(pp) andalso not(ast) andalso not(ir) andalso not(cflag)
 
 val thisLexer = case file of

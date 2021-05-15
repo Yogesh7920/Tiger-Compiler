@@ -6,7 +6,7 @@ Lab 6
     There are five ways to execute
     1 './tc filepath' , this prints the IR
     2. './tc --ir filepath' , this also prints the IR
-    3. './tc --c filepath' , this prints the canonized IR
+    3. './tc --can filepath' , this prints the canonized IR
     4. './tc --pp filepath' , this pretty prints the tiger code
     5. './tc --ast filepath' , this prints the AST
 

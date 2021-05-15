@@ -1,7 +1,7 @@
-let
-    var x := 1
-in
-    for i := 2 to 4 do (
-        x := i + 1
-    )
-end
+var x := 3
+var y := x + 2
+
+function f(a: int):int = (
+    if a = 4 then 1 else 0
+)
+

@@ -28,8 +28,15 @@ struct
                     Nx of T.stm      |
                     Cx of int * int -> T.stm (* Temp.label * Temp.label *)
 
-    fun pushstack n = T.MOVE (T.TEMP F.stackptr, T.BINOP (T.MINUS, T.TEMP F.stackptr, T.CONST n))
-    and popstack n = T.MOVE (T.TEMP F.stackptr, T.BINOP (T.PLUS, T.TEMP F.stackptr, T.CONST n))
+    (* push stack: sp = sp - wordsize*n *)
+    fun pushstack n = T.MOVE (T.TEMP F.stackptr, 
+                      T.BINOP (T.MINUS, T.TEMP F.stackptr, 
+                              T.BINOP (T.MUL, T.CONST F.wordSize, T.CONST n)))
+
+    (* pop stack: sp = sp + wordsize*n *)
+    and popstack n = T.MOVE (T.TEMP F.stackptr, 
+                      T.BINOP (T.PLUS, T.TEMP F.stackptr, 
+                              T.BINOP (T.MUL, T.CONST F.wordSize, T.CONST n)))
     
     (* Converting exp -> T.expr *)
     fun unEx (Ex e) =  e                            |
