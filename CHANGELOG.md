@@ -2,6 +2,8 @@
 
 Lab 6
 
+    Hash : 2c5619c41c9fed7b8fbd23c492e08df9d62e4410
+
     How to run: 
     There are five ways to execute
     1 './tc filepath' , this prints the IR
@@ -12,8 +14,10 @@ Lab 6
 
 Lab 5
     
-    How to run: no output, check tree.sml, temp.sml and canon.sml
     hash: bc973183548e1137373bfea74dc1fffd6646bf2c
+
+    How to run: no output, check tree.sml, temp.sml and canon.sml
+    
     
 Lab 4
     
@@ -30,6 +34,8 @@ Lab 3
 ### 2021-05-14
 - Tree to IR done
 
+### 2021-05-15
+- Tree to IR basic done
 ### 2021-05-12
 - Tree to IR basic done (without functions)
 ### 2021-05-01

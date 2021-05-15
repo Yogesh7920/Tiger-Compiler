@@ -4,10 +4,15 @@
     Roll Number: 111801047
 
 # Command-line argumants
+- --ir -> print IR
+- --can -> print canonized IR
+- --bb -> print canonized upto basicBlcok
+- --lin -> print canonized upto linearize
 - --pp -> pretty print the .tig code.
 - --ast -> print the ast of the code. 
 
 # Lab Assignments
+## Lab 6: Tree to IR
 
 ## Lab 5: IR Tree representation
 - Tree representation, and canonization done.
