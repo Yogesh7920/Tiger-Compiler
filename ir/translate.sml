@@ -248,18 +248,20 @@ struct
                 T.CJUMP(_, _, _, t_, f_) => (t_,f_)  (* getting the labels from cjump *)
               | _ => raise NotCJUMP
 
-          val then_ = T.EXP (exp_to_ir env Then)
+          val then_ = exp_to_ir env Then
           val else_ = case Else of  (* if no else then defaults to T.CONST 0 *)
-            SOME (e) => T.EXP (exp_to_ir env e)
-          | _ => T.EXP(T.CONST 0)
+            SOME (e) => exp_to_ir env e
+          | _ => T.CONST 0
+
+          val res = Temp.newtemp() (* final value is stored, either its then or else*)
 
           val stm = T.list_to_SEQ ([
-            if_, T.LABEL t, then_, (* the cjump in if_ will go to t or f, for true & false*)
+            if_, T.LABEL t, T.MOVE(T.TEMP res, then_), (* the cjump in if_ will go to t or f, for true & false*)
             T.JUMP (T.NAME join, [join]), (* once the is done we jump to join (bypass else)*)
-            T.LABEL f, else_, T.LABEL join
+            T.LABEL f, T.MOVE (T.TEMP res, else_), T.LABEL join
           ])
         in
-          unEx (Nx stm)
+          T.ESEQ (stm, T.TEMP res)
         end
 
     and letexp_to_ir env ({Let, In}) = 

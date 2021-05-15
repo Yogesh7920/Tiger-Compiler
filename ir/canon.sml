@@ -139,7 +139,7 @@ structure Canon = struct
                     fun trace_helper (hs, Tree.JUMP (Tree.NAME lab, _)) = 
                             (
                                 case (IntMap.find (hm, lab)) of
-                                    SOME(b_) => hs @ trace (hm, b_, bs)   | 
+                                    SOME(b_ as (_::_)) => hs @ trace (hm, b_, bs)   | 
                                     _ => b @ getnext (hm, bs)
                             )   |
 
@@ -147,8 +147,8 @@ structure Canon = struct
                             (
                                 case (IntMap.find(hm, t), IntMap.find(hm, f)) of
 
-                                    (_, SOME(b_)) => b @ trace(hm, b_, bs)      | 
-                                    (SOME(b_), _) => hs @ [Tree.CJUMP (Tree.notRelop oper, x, y, f, t)] @ trace (hm, b_, bs) 
+                                    (_, SOME(b_ as (_::_))) => b @ trace(hm, b_, bs)      | 
+                                    (SOME(b_ as (_::_)), _) => hs @ [Tree.CJUMP (Tree.notRelop oper, x, y, f, t)] @ trace (hm, b_, bs) 
                                                             (* Since only false label can be added below*) | 
                                     (_) => 
                                         let
@@ -176,4 +176,11 @@ structure Canon = struct
         end
 
     fun canonize prog = Tree.list_to_SEQ (traceSchedule (basicBlocks (linearize prog)))
+    fun canonize_uptoBB (prog) : Tree.stm list list = 
+                    let
+                        val (blks, done) = basicBlocks (linearize prog)
+                    in
+                        blks
+                    end
+    (* fun canonize prog = Tree.list_to_SEQ (linearize prog) *)
 end
