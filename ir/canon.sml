@@ -62,7 +62,7 @@ structure Canon = struct
                                             val stms = do_stm s
                                             val (stms_, e) = do_exp e
                                         in
-                                            (helper(stms_, stms), e)
+                                            (helper(stms, stms_), e)
                                         end |
                 do_exp (Tree.CALL (e, el)) = reorder_exp (e :: el, fn e :: el => Tree.CALL (e, el) | _ => raise Error)     |
                 do_exp e        = reorder_exp ([], fn [] => e | _ => raise Error)
@@ -182,5 +182,5 @@ structure Canon = struct
                     in
                         blks
                     end
-    (* fun canonize prog = Tree.list_to_SEQ (linearize prog) *)
+    fun canonize_uptoLin prog = Tree.list_to_SEQ (linearize prog)
 end
