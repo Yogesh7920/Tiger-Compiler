@@ -133,7 +133,7 @@ structure Canon = struct
                 hm stands for hashmap *)
             fun trace (hm, b as (Tree.LABEL lab :: _), bs) = 
                 let
-                    val hm = IntMap.insert (hm, lab, [])
+                    val hm = IntMap.insert (hm, lab, []) (* empty block implies already added to trace *)
                     val (hs, l) = sepLast b
 
                     fun trace_helper (hs, Tree.JUMP (Tree.NAME lab, _)) = 
@@ -167,8 +167,8 @@ structure Canon = struct
             (* Find the next block (from already seen) to trace *)
             and getnext (hm, (b as (Tree.LABEL lab :: _))::bs) = 
                                     (case IntMap.find (hm, lab) of
-                                        SOME(_) => trace (hm, b, bs)    |
-                                        _ => getnext (hm, bs))          |
+                                        SOME(_::_) => trace (hm, b, bs)     | (* If non-empty block exist *)
+                                        _ => getnext (hm, bs))              |
                 getnext (hm, []) = []   |
                 getnext _ = raise traceError (* This fun is called only with the hashmap *)
         in
