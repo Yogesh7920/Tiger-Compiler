@@ -175,12 +175,12 @@ structure Canon = struct
             getnext (List.foldr addBlock IntMap.empty blks, blks) @ [Tree.LABEL done]
         end
 
-    fun canonize prog = Tree.list_to_SEQ (traceSchedule (basicBlocks (linearize prog)))
+    fun canonize prog = traceSchedule (basicBlocks (linearize prog))
     fun canonize_uptoBB (prog) : Tree.stm list list = 
                     let
                         val (blks, done) = basicBlocks (linearize prog)
                     in
                         blks
                     end
-    fun canonize_uptoLin prog = Tree.list_to_SEQ (linearize prog)
+    fun canonize_uptoLin prog = linearize prog
 end
