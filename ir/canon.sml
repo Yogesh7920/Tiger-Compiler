@@ -5,6 +5,7 @@ structure IntMap = RedBlackMapFn (struct
 
 structure Canon = struct
     exception Error
+    exception traceError
 
     fun linearize (stm0 : Tree.stm) = 
         let
@@ -53,7 +54,8 @@ structure Canon = struct
                                         end
             (* Most places in do_exp & do_smt will have raise errors to avoid pat matching warning as 
                 We know that only the req. pat will be passed *)
-            and do_exp (Tree.BINOP(oper, a, b)) = reorder_exp ([a, b], fn [a, b] => Tree.BINOP (oper, a, b)  | _ => raise Error)    |
+            and do_exp (Tree.BINOP(oper, a, b)) = reorder_exp ([a, b], 
+                                                fn [a, b] => Tree.BINOP (oper, a, b)  | _ => raise Error)    |
                 do_exp (Tree.MEM(a)) = reorder_exp([a], fn [a] => Tree.MEM(a) | _ => raise Error)                                  |
                 do_exp (Tree.ESEQ(s, e)) = 
                                         let
@@ -66,13 +68,22 @@ structure Canon = struct
                 do_exp e        = reorder_exp ([], fn [] => e | _ => raise Error)
 
             and do_stm (Tree.JUMP(e, labs)) = reorder_stm ([e], fn [e] => Tree.JUMP(e, labs) | _ => raise Error)    |
+                
                 do_stm (Tree.CJUMP(p, a, b, t, f)) = reorder_stm ([a, b], fn [a, b] => Tree.CJUMP(p, a, b, t, f) | _ => raise Error)    |
-                do_stm (Tree.MOVE (Tree.TEMP t, Tree.CALL (e, el))) = reorder_stm (e :: el, fn e :: el => Tree.MOVE (Tree.TEMP t, Tree.CALL (e, el)) | _ => raise Error) |
+                
+                do_stm (Tree.MOVE (Tree.TEMP t, Tree.CALL (e, el))) = reorder_stm (e :: el, 
+                                                                                    fn e :: el => Tree.MOVE (Tree.TEMP t, 
+                                                                                    Tree.CALL (e, el)) | _ => raise Error) |
                 do_stm (Tree.MOVE (Tree.TEMP t, b)) = reorder_stm ([b], fn [b] => Tree.MOVE (Tree.TEMP t, b) | _ => raise Error) |
+                
                 do_stm (Tree.MOVE (Tree.MEM e, b)) = reorder_stm ([e, b], fn [e, b] => Tree.MOVE(Tree.MEM e, b) | _ => raise Error)  |
+                
                 do_stm (Tree.MOVE (Tree.ESEQ (s, e), b)) = do_stm (Tree.SEQ (s, Tree.MOVE (e, b)))  |
+                
                 do_stm (Tree.SEQ(a, b)) = helper(do_stm a, do_stm b)    |
+                
                 do_stm (Tree.EXP e) = reorder_stm ([e], fn [e] => Tree.EXP e | _ => raise Error) |
+                
                 do_stm s = reorder_stm ([], fn [] => s | _ => raise Error)
 
 
@@ -93,6 +104,7 @@ structure Canon = struct
                             next (stms as (Tree.LABEL lab :: _), b) = next (Tree.JUMP (Tree.NAME lab, [lab]) :: stms, b)  (* add Jump to prev. block*)  | 
                             next (s::xs, b) = next (xs, s::b)   |
                             next ([], b) = next ([Tree.JUMP (Tree.NAME done, [done])], b)   (* Last block *)
+                        
                         and last (stms, b) = blocks (stms, List.rev b :: bs) (* one block done *)
                     in
                         next (tail, [Tree.LABEL l])
@@ -116,7 +128,7 @@ structure Canon = struct
                         in
                             (x::hs, l)
                         end |
-                sepLast [] = raise Error
+                sepLast [] = raise traceError
             (*  bs has the other blocks
                 hm stands for hashmap *)
             fun trace (hm, b as (Tree.LABEL lab :: _), bs) = 
@@ -147,18 +159,18 @@ structure Canon = struct
                             )    |
 
                         trace_helper (hs, Tree.JUMP _) = b @ getnext (hm, bs)   |
-                        trace_helper _ = raise Error (* Since basic Blocking is done before every block must end with a jump*)
+                        trace_helper _ = raise traceError (* Since basic Blocking is done before every block must end with a jump*)
                 in
                     trace_helper(hs, l)
                 end |
-                trace (_, _, _) = raise Error (* Since basic Blocking is done before every block must start with a label*)
+                trace (_, _, _) = raise traceError (* Since basic Blocking is done before every block must start with a label*)
             (* Find the next block (from already seen) to trace *)
             and getnext (hm, (b as (Tree.LABEL lab :: _))::bs) = 
                                     (case IntMap.find (hm, lab) of
                                         SOME(_) => trace (hm, b, bs)    |
                                         _ => getnext (hm, bs))          |
                 getnext (hm, []) = []   |
-                getnext _ = raise Error (* This fun is called only with the hashmap *)
+                getnext _ = raise traceError (* This fun is called only with the hashmap *)
         in
             getnext (List.foldr addBlock IntMap.empty blks, blks) @ [Tree.LABEL done]
         end

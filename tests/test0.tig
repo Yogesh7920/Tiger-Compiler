@@ -1,5 +1,7 @@
-function f(a: int) = (
-    3
-)
-
-var x := f (4)
+let
+    var x := 1
+in
+    for i := 2 to 4 do (
+        x := i + 1
+    )
+end

@@ -8,6 +8,7 @@ struct
     exception Error
     exception StmConvError
     exception NotCJUMP
+    exception whileCondNotRel
 
     exception NotSupported
     exception NotSupportedString
@@ -49,7 +50,7 @@ struct
             end  
 
     fun unNx (Ex e) =   (case e of
-                        T.ESEQ(s, _) => s               |
+                        T.ESEQ (s, _) => s              |
                         _ => raise StmConvError  )      |
         unNx (Nx s) = s                                 |
         unNx (Cx c) = unNx (Ex (unEx (Cx c)))
@@ -155,6 +156,7 @@ struct
         | Int i => T.CONST i
         | Oper x => binop_to_ir env x
         | Lval l => lvalue_to_ir env l
+        | Assign x => assign_to_ir env x
         | LetExp le => letexp_to_ir env le
         | Exps es => exps_to_ir env es
         | IfCond x => ifcond_to_ir env x
@@ -171,18 +173,28 @@ struct
           val lab = case Env.find (env, Name) of
                     SOME(x) => x
                   | _       => raise NotDefined Name
-          fun helper [] = []  |
-              helper (x::xs) = (exp_to_ir env x) :: (helper xs)
+
+          (* func to convert all args to ir expr *)
+          fun helper [] = []  | 
+              helper (x::xs) = (exp_to_ir env x) :: (helper xs) 
         in
           T.CALL (T.NAME lab, (helper Args))
         end
 
     and whileloop_to_ir env ({Cond, Body})  = 
         let
-          val cond_ = unNx (Ex (exp_to_ir env Cond))
+          val cond_ = exp_to_ir env Cond
+
+          val cond_ = case cond_ of
+                        T.ESEQ(T.CJUMP(_), _) => cond_
+                      | _ => raise whileCondNotRel
+
+          val cond_ = unNx (Ex (cond_))
+          
           val (t, f) = case cond_ of
                           T.CJUMP(_, _, _, t_, f_) => (t_, f_)
                         | _ => raise NotCJUMP
+
           val body_ = exp_to_ir env Body
           val seq = T.list_to_SEQ ([
             T.LABEL f,
@@ -222,20 +234,21 @@ struct
 
     and ifcond_to_ir env ({If, Then, Else}) = 
         let
-          val join = Temp.newlabel()
+          val join = Temp.newlabel() (* once both if and else are done *)
           val if_ = unNx (Ex (exp_to_ir env If))
           val (t, f) = 
               case if_ of
-                T.CJUMP(_, _, _, t_, f_) => (t_,f_)
+                T.CJUMP(_, _, _, t_, f_) => (t_,f_)  (* getting the labels from cjump *)
               | _ => raise NotCJUMP
 
           val then_ = T.EXP (exp_to_ir env Then)
-          val else_ = case Else of
+          val else_ = case Else of  (* if no else then defaults to T.CONST 0 *)
             SOME (e) => T.EXP (exp_to_ir env e)
           | _ => T.EXP(T.CONST 0)
 
           val stm = T.list_to_SEQ ([
-            if_, T.LABEL t, then_, T.JUMP (T.NAME join, [join]), 
+            if_, T.LABEL t, then_, (* the cjump in if_ will go to t or f, for true & false*)
+            T.JUMP (T.NAME join, [join]), (* once the is done we jump to join (bypass else)*)
             T.LABEL f, else_, T.LABEL join
           ])
         in
@@ -258,6 +271,15 @@ struct
               | _ => raise NotDefined id
           ) 
         | _    => raise NotSupportedLvalue
+    )
+
+    and assign_to_ir env (lval, exp) = (
+        let
+          val exp_ = exp_to_ir env exp
+          val lval_ = lvalue_to_ir env lval
+        in
+          unEx (Nx (T.MOVE(lval_, exp_)))
+        end
     )
 
     and binop_to_ir env (e1, oper, e2) = 

@@ -28,7 +28,7 @@ fun print_error (s,i:int,_) = TextIO.output(TextIO.stdErr,
 fun arg_parser 	[]  = 	([], [])	|
     arg_parser  xs	=	List.partition (fn x => (
 		(x="--pp") orelse (x="--ast") orelse 
-		(x="--ir") orelse (x="--nc")
+		(x="--ir") orelse (x="--c")
 		)) xs
 
 fun element_exists (item, xs) = List.exists (fn x => (x=item)) xs;
@@ -39,7 +39,7 @@ val (flag, file) = arg_parser args
 val pp = element_exists ("--pp", flag)
 val ast = element_exists ("--ast", flag)
 val ir = element_exists ("--ir", flag)
-val cflag = element_exists ("--nc", flag)
+val cflag = element_exists ("--c", flag)
 val default = not(pp) andalso not(ast) andalso not(ir) andalso not(cflag)
 
 val thisLexer = case file of
@@ -58,12 +58,12 @@ val _ = if (pp) then (print_str "\n\027[1;37mPretty-Print\027[0m\n\n") else ()
 val _ = if (pp) then (PP.compile program) else ()
 
 val tree = if (ir orelse cflag orelse default) then Translate.compile program else Tree.EXP(Tree.CONST 0)
-val tree = if (ir orelse default) then Canon.canonize tree else tree
+val tree = if (cflag) then Canon.canonize tree else tree
 
-val _ = if (ir) then (print_str "\n\027[1;37mIntermediate-Representation\027[0m\n\n") else ()
+val _ = if (ir) then (print_str "\n\027[1;37mIntermediate-Representation \027[0m\n\n") else ()
 val _ = if (ir) then (Printtree.printtree (TextIO.stdOut, tree)) else ()
 
-val _ = if (cflag) then (print_str "\n\027[1;37mIntermediate-Representation (without canonization)\027[0m\n\n") else ()
+val _ = if (cflag) then (print_str "\n\027[1;37mIntermediate-Representation (canonized) \027[0m\n\n") else ()
 val _ = if (cflag) then (Printtree.printtree (TextIO.stdOut, tree)) else ()
 
 (* default *)

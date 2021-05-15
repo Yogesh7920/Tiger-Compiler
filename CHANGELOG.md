@@ -1,8 +1,18 @@
 # Git hashes and run info
 
-Lab 5 <br>
+Lab 6
+
+    How to run: 
+    There are five ways to execute
+    1 './tc filepath' , this prints the IR
+    2. './tc --ir filepath' , this also prints the IR
+    3. './tc --c filepath' , this prints the canonized IR
+    4. './tc --pp filepath' , this pretty prints the tiger code
+    5. './tc --ast filepath' , this prints the AST
+
+Lab 5
     
-    how to run: no output, check tree.sml, temp.sml and canon.sml
+    How to run: no output, check tree.sml, temp.sml and canon.sml
     hash: bc973183548e1137373bfea74dc1fffd6646bf2c
     
 Lab 4
