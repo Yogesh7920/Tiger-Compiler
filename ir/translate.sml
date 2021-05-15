@@ -126,8 +126,8 @@ struct
             in
               (env_, T.list_to_SEQ ([
                 T.LABEL lab, 
-                pushstack (1),
                 T.MOVE (T.MEM (T.TEMP F.stackptr), T.TEMP F.frameptr), (* prev. fp is stored *)
+                pushstack (1),
                 T.MOVE (T.TEMP F.frameptr, T.TEMP F.stackptr), (* fp is current sp *)
                 T.EXP(body_),
                 T.MOVE (T.TEMP F.stackptr, T.TEMP F.frameptr), (* poping this func frame *)

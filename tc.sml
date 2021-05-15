@@ -26,7 +26,10 @@ fun print_error (s,i:int,_) = TextIO.output(TextIO.stdErr,
 (* Parse command line and set a suitable lexer *)
 
 fun arg_parser 	[]  = 	([], [])	|
-    arg_parser  xs	=	List.partition (fn x => ((x="--pp" orelse x="--ast") orelse (x="--ir"))) xs
+    arg_parser  xs	=	List.partition (fn x => (
+		(x="--pp") orelse (x="--ast") orelse 
+		(x="--ir") orelse (x="--nc")
+		)) xs
 
 fun element_exists (item, xs) = List.exists (fn x => (x=item)) xs;
 

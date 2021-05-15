@@ -2,4 +2,4 @@ function f(a: int) = (
     3
 )
 
-var x := f(4)
+var x := f (4)

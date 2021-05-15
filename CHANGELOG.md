@@ -17,6 +17,11 @@ Lab 3
 
   _(date: yyyy-mm-dd)_
 
+### 2021-05-14
+- Tree to IR done
+
+### 2021-05-12
+- Tree to IR basic done (without functions)
 ### 2021-05-01
 - Tiger to Tree, basic binary added
 ### 2021-04-30
