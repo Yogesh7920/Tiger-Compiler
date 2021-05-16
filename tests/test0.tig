@@ -1,5 +1,11 @@
+/* var x := let
+    function f(a: int): int = a + 1
+in
+    if f(0) = 1 then 2 else 3
+end */
+
 let
     function f(a: int): int = a + 1
 in
-    1 + f(0)
+    f(1) + 1
 end

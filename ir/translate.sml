@@ -127,6 +127,7 @@ struct
         | FunDec ({Name, ArgTypes, Type, Val}) => (
             let
               val result = Temp.newtemp()
+              val return = Temp.newlabel()
               val _ = Env.insert (!argenv, Name, [])
               val env_ = 
                   let
@@ -147,15 +148,19 @@ struct
                   in
                     update_env Env.empty ArgTypes 
                   end
-              val _ = insert_argenv(Name, result::find_argenv(Name))
+              val _ = insert_argenv(Name, return::(result::find_argenv(Name)))
               val body_ = exp_to_ir env_ Val
               (* val numOfVar = Env.numItems (env_) *)
               val lab = Temp.newlabel()
+              val skip = Temp.newlabel()
               val env_ = Env.insert (env, Name, lab)
             in
               (env_, T.list_to_SEQ ([
+                T.JUMP (T.NAME skip, [skip]),
                 T.LABEL lab, 
-                T.MOVE (T.TEMP result, body_)
+                T.MOVE (T.TEMP result, body_),
+                T.JUMP (T.NAME return, [return]),
+                T.LABEL skip
               ]))
             end
         )
@@ -205,10 +210,11 @@ struct
               assign_regs ([], []) = [] |
               assign_regs (_, _) = raise InvalidNumberOfArgs
           
-          val result = List.hd (find_argenv(Name))
-          val assignments = T.list_to_SEQ (assign_regs(List.tl (find_argenv(Name)), exps_))
+          val return = List.hd (find_argenv(Name))
+          val result = List.hd (List.tl (find_argenv(Name)))
+          val assignments = T.list_to_SEQ (assign_regs(List.tl(List.tl(find_argenv(Name))), exps_))
         in
-          T.ESEQ(T.SEQ (assignments, T.EXP (T.CALL (T.NAME lab, exps_))), T.TEMP result) 
+          T.ESEQ(T.list_to_SEQ([assignments, T.EXP (T.CALL (T.NAME lab, exps_)), T.LABEL return]), T.TEMP result) 
         end
 
     and whileloop_to_ir env ({Cond, Body})  = 

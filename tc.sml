@@ -54,7 +54,7 @@ val thisLexer = case file of
 val (program,_) = TigerParser.parse (0,thisLexer,print_error,()) (* parsing *)
 
 fun printCanon [] = ()  | 
-	printCanon (x::xs) = (Printtree.printtree (TextIO.stdOut, x); printCanon xs; ())
+	printCanon (x::xs) = (Printtree.printtree (TextIO.stdOut, x); print_str "\n"; printCanon xs; ())
 
 val _ 	= if (ast) then (print_str "\n\027[1;37mAST\027[0m\n") else ()
 val _	= if (ast) then (PrintAST.print_ast program) else [()]
