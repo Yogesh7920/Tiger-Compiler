@@ -18,11 +18,23 @@ struct
     exception NotSupportedDeclaration
     exception NotSupportedExpression
     exception NotSupportedLvalue
+
     exception NotDefined of string
+    exception InvalidNumberOfArgs
 
     open Tiger;
     structure T = Tree;
     structure F = Frame;
+
+    type 'a argmap = 'a Env.map
+    val argenv: int list argmap ref = ref Env.empty
+    fun insert_argenv (k, v) = (argenv := Env.insert (!argenv, k, v); !argenv)
+    fun find_argenv (k) = (
+          case Env.find (!argenv, k) of
+                SOME(x) => x
+              | _ => []
+        )
+    
 
     datatype exp =  Ex of T.expr     |
                     Nx of T.stm      |
@@ -114,19 +126,28 @@ struct
             )
         | FunDec ({Name, ArgTypes, Type, Val}) => (
             let
+              val result = Temp.newtemp()
+              val _ = Env.insert (!argenv, Name, [])
               val env_ = 
                   let
                     fun extract_ID e ({ID, Type}) = 
-                                        let
-                                          val t = Temp.newtemp()
-                                        in
-                                          Env.insert (e, ID, t)
-                                        end
+                          let
+                            val t = Temp.newtemp()
+                            val _ = ( 
+                                  let
+                                    val xs = find_argenv(Name)
+                                  in
+                                    insert_argenv(Name, xs @ [t])
+                                  end )
+                          in
+                            Env.insert (e, ID, t)
+                          end
                     fun update_env e [] = e |
                         update_env e (x::xs) = update_env (extract_ID e x) xs
                   in
                     update_env Env.empty ArgTypes 
                   end
+              val _ = insert_argenv(Name, result::find_argenv(Name))
               val body_ = exp_to_ir env_ Val
               (* val numOfVar = Env.numItems (env_) *)
               val lab = Temp.newlabel()
@@ -134,13 +155,7 @@ struct
             in
               (env_, T.list_to_SEQ ([
                 T.LABEL lab, 
-                T.MOVE (T.MEM (T.TEMP F.stackptr), T.TEMP F.frameptr), (* prev. fp is stored *)
-                pushstack (1),
-                T.MOVE (T.TEMP F.frameptr, T.TEMP F.stackptr), (* fp is current sp *)
-                T.EXP(body_),
-                T.MOVE (T.TEMP F.stackptr, T.TEMP F.frameptr), (* poping this func frame *)
-                popstack (1),
-                T.MOVE (T.TEMP F.frameptr, T.TEMP F.stackptr) (* restoring the prev fp *)
+                T.MOVE (T.TEMP result, body_)
               ]))
             end
         )
@@ -180,12 +195,20 @@ struct
           val lab = case Env.find (env, Name) of
                     SOME(x) => x
                   | _       => raise NotDefined Name
-
           (* func to convert all args to ir expr *)
           fun helper [] = []  | 
               helper (x::xs) = (exp_to_ir env x) :: (helper xs) 
+          
+          val exps_ = helper Args
+          
+          fun assign_regs (arg::args, exp::exps) = (T.MOVE(T.TEMP arg, exp)) :: (assign_regs (args, exps))  |
+              assign_regs ([], []) = [] |
+              assign_regs (_, _) = raise InvalidNumberOfArgs
+          
+          val result = List.hd (find_argenv(Name))
+          val assignments = T.list_to_SEQ (assign_regs(List.tl (find_argenv(Name)), exps_))
         in
-          T.CALL (T.NAME lab, (helper Args))
+          T.ESEQ(T.SEQ (assignments, T.EXP (T.CALL (T.NAME lab, exps_))), T.TEMP result) 
         end
 
     and whileloop_to_ir env ({Cond, Body})  = 
