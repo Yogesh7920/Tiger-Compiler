@@ -163,7 +163,8 @@ struct
               val lab = Temp.newlabel()
               val skip = Temp.newlabel()
               val env_ = Env.insert (env, Name, lab)
-              val pop_stack = popstack (numOfArgs+1)
+              val restore_fp = T.MOVE (T.TEMP F.frameptr, T.MEM(T.TEMP F.frameptr))
+              val pop_stack = popstack (numOfArgs+2) (* pop arg, ret addr, prev fp*)
             in
               (env_, T.list_to_SEQ ([
                 T.JUMP (T.NAME skip, [skip]),
@@ -171,6 +172,7 @@ struct
                 @ assign_reg @
                 [T.MOVE (T.TEMP F.retval, body_),
                 assign_retAddress,
+                restore_fp,
                 pop_stack,
                 T.JUMP (T.TEMP F.retaddr, [F.retaddr]),
                 T.LABEL skip
@@ -227,8 +229,12 @@ struct
           val add_args = 
               let
                 fun helper 0 [] = []  |
-                    helper 1 [x] = [T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs+1))), x)]  |
-                    helper n (x::xs) = T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2))), x) :: helper (n-1) xs |
+                    helper 1 [x] = [T.MOVE(T.MEM(T.BINOP(
+                      T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs+1)
+                      )), x)]  |
+                    helper n (x::xs) = T.MOVE(T.MEM(T.BINOP(
+                      T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2)
+                      )), x) :: helper (n-1) xs |
                     helper _ _ = raise InvalidNumberOfArgs
               in
                 helper numOfArgs args
