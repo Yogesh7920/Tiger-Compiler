@@ -3,7 +3,8 @@
     Name: Yogesh R
     Roll Number: 111801047
 
-# Registers
+# Registers and Stack
+- stack grows downwards (--sp is push and ++sp is pop)
 - sp - stack pointer
 - fp - frame pointer
 - ra - return address
