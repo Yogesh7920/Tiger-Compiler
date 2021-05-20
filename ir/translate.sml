@@ -344,11 +344,11 @@ struct
           val reg = case dec of
                       T.MOVE (T.TEMP t, v) => t
                     | _ => raise UnknownError
-          (* val inc = T.MOVE (T.TEMP reg, T.BINOP(T.PLUS, T.TEMP reg, T.CONST 1)) *)
+          val inc = T.MOVE (T.TEMP reg, T.BINOP(T.PLUS, T.TEMP reg, T.CONST 1))
           val to_ = exp_to_ir env To
           val body_ = exp_to_ir env_ Body
           val seq = T.list_to_SEQ ([
-            dec, T.LABEL loop, T.EXP(body_), 
+            dec, T.LABEL loop, T.EXP(body_), inc,
             T.CJUMP(T.EQ, T.TEMP reg, to_, done, loop),
             T.LABEL done
           ])
