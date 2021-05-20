@@ -120,7 +120,7 @@ struct
                     let
                       val t = Temp.newtemp()
                       val v = exp_to_ir env Val
-                      val env_ = Env.insert(env, Name, t)
+                      val env_ = Env.insert(env, Name, T.TEMP t)
                     in
                       (env_, T.MOVE (T.TEMP t, v))
                     end
@@ -141,7 +141,7 @@ struct
                           let
                             val t = Temp.newtemp()
                           in
-                            Env.insert (e, ID, t)
+                            Env.insert (e, ID, T.TEMP t)
                           end
                     fun update_env e [] = e |
                         update_env e (x::xs) = update_env (extract_ID e x) xs
@@ -153,7 +153,7 @@ struct
               val assign_reg = 
                     let
                       fun extract (0, []) = []  |
-                          extract (n, (x::xs)) = T.MOVE (T.TEMP x, T.MEM (
+                          extract (n, (x::xs)) = T.MOVE (x, T.MEM (
                             T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2))
                             )) :: extract ((n-1), xs) |
                           extract (_, _) = raise InvalidNumberOfArgs
@@ -162,7 +162,7 @@ struct
                     end
               val lab = Temp.newlabel()
               val skip = Temp.newlabel()
-              val env_ = Env.insert (env, Name, lab)
+              val env_ = Env.insert (env, Name, T.NAME lab)
               val restore_fp = T.MOVE (T.TEMP F.frameptr, T.MEM(T.TEMP F.frameptr))
               val pop_stack = popstack (numOfArgs+2) (* pop arg, ret addr, prev fp*)
             in
@@ -212,6 +212,29 @@ struct
 
     and funcCall env ({Name, Args}) = 
         let
+          val locals = 
+              let
+                fun fil (T.TEMP(x)) = true  |
+                    fil _   = false
+              in
+                List.filter fil (Env.listItems(env))
+              end
+          val num_of_locals = List.length(locals)
+          val alloc_local = if (num_of_locals>0) then [pushstack(num_of_locals)] else []
+          val save_local = 
+                let
+                  fun helper (0, []) = []  |
+                      helper (n, (x::xs)) = if (n=num_of_locals) then (
+                        T.MOVE (T.MEM (T.TEMP F.stackptr), x) :: helper ((n-1), xs)
+                      ) else (
+                        T.MOVE (T.MEM (
+                        T.BINOP(T.MINUS, T.TEMP F.stackptr, T.CONST (num_of_locals-n))
+                        ), x) :: helper ((n-1), xs)
+                        ) |
+                      helper (_, _) = raise InvalidNumberOfArgs
+                in
+                  helper (num_of_locals, locals)
+                end
           val lab = case Env.find(env, Name) of
                             SOME(x) => x
                           | _ => raise NotDefined Name
@@ -225,7 +248,6 @@ struct
     
           val add_retAddress = T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST 1)), T.NAME retAddress)
           val args = List.map (exp_to_ir env) Args
-          
           val add_args = 
               let
                 fun helper 0 [] = []  |
@@ -239,16 +261,32 @@ struct
               in
                 helper numOfArgs args
               end
+          
+          val retrieve_locals = 
+                let
+                  fun helper (0, []) = []  |
+                      helper (n, (x::xs)) = if (n=num_of_locals) then (
+                        T.MOVE (x, T.MEM (T.TEMP F.stackptr)) :: helper ((n-1), xs)
+                      ) else (
+                        T.MOVE (x, T.MEM (
+                        T.BINOP(T.MINUS, T.TEMP F.stackptr, T.CONST (num_of_locals-n))
+                        )) :: helper ((n-1), xs)
+                        ) |
+                      helper (_, _) = raise InvalidNumberOfArgs
+                in
+                  helper (num_of_locals, locals)
+                end
         in
-          T.ESEQ(T.list_to_SEQ([
+          T.ESEQ(T.list_to_SEQ(
+            alloc_local @ save_local @ [
             push_for_prev_fp, add_prev_fp, 
             assign_new_fp, 
             push_for_ret_and_args,
             add_retAddress
             ] @ add_args @ [
-              T.EXP(T.CALL(T.NAME lab, args)),
+              T.EXP(T.CALL(lab, args)),
               T.LABEL retAddress
-              ]), T.TEMP F.retval) 
+              ] @ retrieve_locals), T.TEMP F.retval) 
         end
 
     and whileloop_to_ir env ({Cond, Body})  = 
@@ -281,7 +319,7 @@ struct
           val (env_, dec) = let
                               val t = Temp.newtemp()
                               val v = exp_to_ir env From
-                              val e_ = Env.insert(env, Name, t)
+                              val e_ = Env.insert(env, Name, T.TEMP t)
                             in
                               (e_, T.MOVE (T.TEMP t, v))
                             end
@@ -330,7 +368,8 @@ struct
     and letexp_to_ir env ({Let, In}) = 
         let
           val (env_, decs) = decs_to_ir env Let
-          val e = exps_to_ir env_ In
+          val env_union = Env.unionWith (fn (x, y) => y) (env, env_)
+          val e = exps_to_ir env_union In
         in
           T.ESEQ (T.list_to_SEQ decs, e)
         end
@@ -339,7 +378,7 @@ struct
         case lval of
           Var (id) => (
               case Env.find(env, id) of
-                SOME(t) => T.TEMP t
+                SOME(t) => t
               | _ => raise NotDefined id
           ) 
         | _    => raise NotSupportedLvalue
