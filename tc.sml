@@ -77,7 +77,7 @@ val _ = if (lin) then (printCanon (lin_tree)) else ()
 val bb_tree = if (bb) then Canon.canonize_uptoBB tree else [[tree]]
 val bb_count = List.length bb_tree
 
-fun block_show (x: Tree.stm list): unit = ((Printtree.printtree (TextIO.stdOut, Tree.list_to_SEQ x)); print_str "\n\nBLOCK-DONE---\n\n")
+fun block_show (x: Tree.stm list): unit = (printCanon x; print_str "\n\nBLOCK-DONE---\n\n")
 val _ = if (bb) then (print_str "\n\027[1;37mIntermediate-Representation (canonized upto basic blocks) \027[0m\n\n") else ()
 val _ = if (bb) then (List.map block_show bb_tree) else [()]
 val _ = if (bb) then (print_str ("Number of Blocks = " ^ Int.toString bb_count ^ "\n")) else ()

@@ -27,26 +27,29 @@ struct
     structure F = Frame;
 
     type 'a argmap = 'a Env.map
-    val argenv: int list argmap ref = ref Env.empty
+    val argenv: int argmap ref = ref Env.empty
     fun insert_argenv (k, v) = (argenv := Env.insert (!argenv, k, v); !argenv)
     fun find_argenv (k) = (
           case Env.find (!argenv, k) of
                 SOME(x) => x
-              | _ => []
+              | _ => raise NotDefined k
         )
-    
 
     datatype exp =  Ex of T.expr     |
                     Nx of T.stm      |
                     Cx of int * int -> T.stm (* Temp.label * Temp.label *)
 
     (* push stack: sp = sp - wordsize*n *)
-    fun pushstack n = T.MOVE (T.TEMP F.stackptr, 
+    fun pushstack 1 = T.MOVE (T.TEMP F.stackptr, 
+                      T.BINOP (T.MINUS, T.TEMP F.stackptr, T.CONST F.wordSize))  |
+        pushstack n = T.MOVE (T.TEMP F.stackptr, 
                       T.BINOP (T.MINUS, T.TEMP F.stackptr, 
                               T.BINOP (T.MUL, T.CONST F.wordSize, T.CONST n)))
 
     (* pop stack: sp = sp + wordsize*n *)
-    and popstack n = T.MOVE (T.TEMP F.stackptr, 
+    and popstack 1 = T.MOVE (T.TEMP F.stackptr, 
+                      T.BINOP (T.PLUS, T.TEMP F.stackptr, T.CONST F.wordSize))  |
+        popstack n = T.MOVE (T.TEMP F.stackptr, 
                       T.BINOP (T.PLUS, T.TEMP F.stackptr, 
                               T.BINOP (T.MUL, T.CONST F.wordSize, T.CONST n)))
     
@@ -126,20 +129,17 @@ struct
             )
         | FunDec ({Name, ArgTypes, Type, Val}) => (
             let
-              val result = Temp.newtemp()
-              val return = Temp.newlabel()
-              val _ = Env.insert (!argenv, Name, [])
+              val numOfArgs = List.length ArgTypes
+              val _ = insert_argenv(Name, numOfArgs)
+
+              val return = T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST 1))
+              val assign_retAddress = T.MOVE(T.TEMP F.retaddr, return)
+              val _ = Env.insert (!argenv, Name, numOfArgs)
               val env_ = 
                   let
                     fun extract_ID e ({ID, Type}) = 
                           let
                             val t = Temp.newtemp()
-                            val _ = ( 
-                                  let
-                                    val xs = find_argenv(Name)
-                                  in
-                                    insert_argenv(Name, xs @ [t])
-                                  end )
                           in
                             Env.insert (e, ID, t)
                           end
@@ -148,18 +148,31 @@ struct
                   in
                     update_env Env.empty ArgTypes 
                   end
-              val _ = insert_argenv(Name, return::(result::find_argenv(Name)))
               val body_ = exp_to_ir env_ Val
-              (* val numOfVar = Env.numItems (env_) *)
+              val regs = Env.listItems(env_)
+              val assign_reg = 
+                    let
+                      fun extract (0, []) = []  |
+                          extract (n, (x::xs)) = T.MOVE (T.TEMP x, T.MEM (
+                            T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2))
+                            )) :: extract ((n-1), xs) |
+                          extract (_, _) = raise InvalidNumberOfArgs
+                    in
+                      extract (numOfArgs, regs)
+                    end
               val lab = Temp.newlabel()
               val skip = Temp.newlabel()
               val env_ = Env.insert (env, Name, lab)
+              val pop_stack = popstack (numOfArgs+1)
             in
               (env_, T.list_to_SEQ ([
                 T.JUMP (T.NAME skip, [skip]),
-                T.LABEL lab, 
-                T.MOVE (T.TEMP result, body_),
-                T.JUMP (T.NAME return, [return]),
+                T.LABEL lab] 
+                @ assign_reg @
+                [T.MOVE (T.TEMP F.retval, body_),
+                assign_retAddress,
+                pop_stack,
+                T.JUMP (T.TEMP F.retaddr, [F.retaddr]),
                 T.LABEL skip
               ]))
             end
@@ -197,24 +210,39 @@ struct
 
     and funcCall env ({Name, Args}) = 
         let
-          val lab = case Env.find (env, Name) of
-                    SOME(x) => x
-                  | _       => raise NotDefined Name
-          (* func to convert all args to ir expr *)
-          fun helper [] = []  | 
-              helper (x::xs) = (exp_to_ir env x) :: (helper xs) 
+          val lab = case Env.find(env, Name) of
+                            SOME(x) => x
+                          | _ => raise NotDefined Name
+          val numOfArgs = find_argenv(Name)
+          val _ = if (numOfArgs=List.length Args) then numOfArgs else raise InvalidNumberOfArgs
+          val push_for_prev_fp = pushstack(1)
+          val add_prev_fp = T.MOVE(T.MEM(T.TEMP F.stackptr), T.TEMP F.frameptr)
+          val assign_new_fp = T.MOVE (T.TEMP F.frameptr, T.TEMP F.stackptr)
+          val retAddress = Temp.newlabel()
+          val push_for_ret_and_args = pushstack(1+numOfArgs)
+    
+          val add_retAddress = T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST 1)), T.NAME retAddress)
+          val args = List.map (exp_to_ir env) Args
           
-          val exps_ = helper Args
-          
-          fun assign_regs (arg::args, exp::exps) = (T.MOVE(T.TEMP arg, exp)) :: (assign_regs (args, exps))  |
-              assign_regs ([], []) = [] |
-              assign_regs (_, _) = raise InvalidNumberOfArgs
-          
-          val return = List.hd (find_argenv(Name))
-          val result = List.hd (List.tl (find_argenv(Name)))
-          val assignments = T.list_to_SEQ (assign_regs(List.tl(List.tl(find_argenv(Name))), exps_))
+          val add_args = 
+              let
+                fun helper 0 [] = []  |
+                    helper 1 [x] = [T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs+1))), x)]  |
+                    helper n (x::xs) = T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2))), x) :: helper (n-1) xs |
+                    helper _ _ = raise InvalidNumberOfArgs
+              in
+                helper numOfArgs args
+              end
         in
-          T.ESEQ(T.list_to_SEQ([assignments, T.EXP (T.CALL (T.NAME lab, exps_)), T.LABEL return]), T.TEMP result) 
+          T.ESEQ(T.list_to_SEQ([
+            push_for_prev_fp, add_prev_fp, 
+            assign_new_fp, 
+            push_for_ret_and_args,
+            add_retAddress
+            ] @ add_args @ [
+              T.EXP(T.CALL(T.NAME lab, args)),
+              T.LABEL retAddress
+              ]), T.TEMP F.retval) 
         end
 
     and whileloop_to_ir env ({Cond, Body})  = 

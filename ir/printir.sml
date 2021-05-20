@@ -3,6 +3,7 @@ structure Printtree :
      sig val printtree : TextIO.outstream * Tree.stm -> unit end =
 
 struct
+    structure F = Frame
     structure T = Tree
     fun printtree (outstream, s0) =
     let         
@@ -11,9 +12,10 @@ struct
 
         fun specialTemp x = 
                 case x of
-                29 => "sp"  | 
-                30 => "fp"  |
-                31 => "ret" |
+                29  => "sp" | 
+                30  => "fp" |
+                2   => "v0" |
+                31  => "ra" |
                 num => "t" ^ Int.toString num
 
         fun indent 0 = ()
