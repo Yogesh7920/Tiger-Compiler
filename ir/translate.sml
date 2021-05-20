@@ -135,7 +135,7 @@ struct
               val numOfArgs = List.length ArgTypes
               val _ = insert_argenv(Name, numOfArgs)
 
-              val return = T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST 1))
+              val return = T.MEM(T.BINOP(T.MINUS, T.TEMP F.frameptr, T.CONST 1))
               val assign_retAddress = T.MOVE(T.TEMP F.retaddr, return)
               val _ = Env.insert (!argenv, Name, numOfArgs)
               val env_ = 
@@ -149,22 +149,24 @@ struct
                     fun update_env e [] = e |
                         update_env e (x::xs) = update_env (extract_ID e x) xs
                   in
-                    update_env env ArgTypes 
+                    update_env Env.empty ArgTypes 
                   end
               val regs = Env.listItems(env_)
-              val env_ = Env.insert(env_, Name, T.NAME lab)
-              val body_ = exp_to_ir env_ Val
               val assign_reg = 
                     let
                       fun extract (0, []) = []  |
                           extract (n, (x::xs)) = T.MOVE (x, T.MEM (
-                            T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2))
+                            T.BINOP(T.MINUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2))
                             )) :: extract ((n-1), xs) |
                           extract (_, _) = raise InvalidNumberOfArgs
                     in
                       extract (numOfArgs, regs)
                     end
-              
+
+              val env_ = Env.insert(env_, Name, T.NAME lab)
+              val env_ = Env.unionWith (fn (x, y) => y) (env, env_)
+              val body_ = exp_to_ir env_ Val
+
               val skip = Temp.newlabel()
               val restore_fp = T.MOVE (T.TEMP F.frameptr, T.MEM(T.TEMP F.frameptr))
               val pop_stack = popstack (numOfArgs+2) (* pop arg, ret addr, prev fp*)
@@ -231,10 +233,10 @@ struct
                         T.MOVE (T.MEM (T.TEMP F.stackptr), x) :: helper ((n-1), xs)
                       ) else (
                         T.MOVE (T.MEM (
-                        T.BINOP(T.MINUS, T.TEMP F.stackptr, T.CONST (num_of_locals-n))
+                        T.BINOP(T.PLUS, T.TEMP F.stackptr, T.CONST (num_of_locals-n))
                         ), x) :: helper ((n-1), xs)
                         ) |
-                      helper (_, _) = raise InvalidNumberOfArgs
+                      helper (_, _) = raise Error
                 in
                   helper (num_of_locals, locals)
                 end
@@ -249,16 +251,16 @@ struct
           val retAddress = Temp.newlabel()
           val push_for_ret_and_args = pushstack(1+numOfArgs)
     
-          val add_retAddress = T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP F.frameptr, T.CONST 1)), T.NAME retAddress)
+          val add_retAddress = T.MOVE(T.MEM(T.BINOP(T.MINUS, T.TEMP F.frameptr, T.CONST 1)), T.NAME retAddress)
           val args = List.map (exp_to_ir env) Args
           val add_args = 
               let
                 fun helper 0 [] = []  |
                     helper 1 [x] = [T.MOVE(T.MEM(T.BINOP(
-                      T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs+1)
+                      T.MINUS, T.TEMP F.frameptr, T.CONST (numOfArgs+1)
                       )), x)]  |
                     helper n (x::xs) = T.MOVE(T.MEM(T.BINOP(
-                      T.PLUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2)
+                      T.MINUS, T.TEMP F.frameptr, T.CONST (numOfArgs-n+2)
                       )), x) :: helper (n-1) xs |
                     helper _ _ = raise InvalidNumberOfArgs
               in
