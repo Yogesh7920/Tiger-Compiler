@@ -386,21 +386,31 @@ struct
                   end
             | T.BINOP(oper, e1, e2) => (
                 let
-                  fun helper(true_label, false_label, oper_, ex1 as (T.ESEQ(_, _)), ex2 as (T.ESEQ(_, _))) =
+                  fun helper(true_label, false_label, oper_, ex1 as (T.ESEQ(s1_, e1_)), ex2 as (T.ESEQ(s2_, e2_))) =
                     (
                       case oper_ of
                         T.OR => 
                         (
                           let
                             val temp_label = Temp.newlabel()
-                            val cj1 = (case unNx (Ex ex1) of
-                                        T.CJUMP(rel1, ex11, ex12, _, _) => T.CJUMP(rel1, ex11, ex12, true_label, temp_label)
+                            val cj1 = (case s1_ of
+                                        T.CJUMP(rel1, ex11, ex12, _, _) => [T.CJUMP(rel1, ex11, ex12, true_label, temp_label)]
+                                      | T.EXP(T.CONST 0) => (
+                                        case e1_ of
+                                            T.BINOP(oper__, e11, e12) => helper(true_label, temp_label, oper__, e11, e12)
+                                          | _ => raise IfNonRel
+                                      )
                                       | _ => raise IfNonRel)
-                            val cj2 = (case unNx (Ex ex2) of
-                                        T.CJUMP(rel2, ex21, ex22, _, _) => T.CJUMP(rel2, ex21, ex22, true_label, false_label)
+                            val cj2 = (case s2_ of
+                                        T.CJUMP(rel2, ex21, ex22, _, _) => [T.CJUMP(rel2, ex21, ex22, true_label, false_label)]
+                                      | T.EXP(T.CONST 0) => (
+                                        case e2_ of
+                                            T.BINOP(oper__, e21, e22) => helper(true_label, false_label, oper__, e21, e22)
+                                          | _ => raise IfNonRel
+                                      )
                                       | _ => raise IfNonRel)
                           in
-                            [cj1, T.LABEL temp_label, cj2]
+                            cj1 @ [T.LABEL temp_label] @ cj2
                           end
                         )
                       | T.AND => 
@@ -408,13 +418,23 @@ struct
                           let
                             val temp_label = Temp.newlabel()
                             val cj1 = (case unNx (Ex ex1) of
-                                        T.CJUMP(rel1, ex11, ex12, _, _) => T.CJUMP(rel1, ex11, ex12, temp_label, false_label)
+                                        T.CJUMP(rel1, ex11, ex12, _, _) => [T.CJUMP(rel1, ex11, ex12, temp_label, false_label)]
+                                      | T.EXP(T.CONST 0) => (
+                                        case e1_ of
+                                            T.BINOP(oper__, e11, e12) => helper(temp_label, false_label, oper__, e11, e12)
+                                          | _ => raise IfNonRel
+                                      )
                                       | _ => raise IfNonRel)
                             val cj2 = (case unNx (Ex ex2) of
-                                        T.CJUMP(rel2, ex21, ex22, _, _) => T.CJUMP(rel2, ex21, ex22, true_label, false_label)
+                                        T.CJUMP(rel2, ex21, ex22, _, _) => [T.CJUMP(rel2, ex21, ex22, true_label, false_label)]
+                                      | T.EXP(T.CONST 0) => (
+                                        case e2_ of
+                                            T.BINOP(oper__, e21, e22) => helper(true_label, false_label, oper__, e21, e22)
+                                          | _ => raise IfNonRel
+                                      )
                                       | _ => raise IfNonRel)
                           in
-                            [cj1, T.LABEL temp_label, cj2]
+                            cj1 @ [T.LABEL temp_label] @ cj2
                           end
                         )
                       | _ => raise IfNonRel
@@ -447,52 +467,72 @@ struct
                           )
                           | _ => raise IfNonRel
                         ) |
-                      helper (true_label, false_label, oper_, ex1 as T.ESEQ(_, _), (T.BINOP(oper2, ex21, ex22))) = 
+                      helper (true_label, false_label, oper_, ex1 as T.ESEQ(s1_, e1_), (T.BINOP(oper2, ex21, ex22))) = 
                         (
                           case oper_ of
                             T.OR => (
                               let
                                 val temp_label = Temp.newlabel()
                                 val cj = (case unNx (Ex ex1) of
-                                        T.CJUMP(rel1, ex11, ex12, _, _) => T.CJUMP(rel1, ex11, ex12, true_label, temp_label)
+                                        T.CJUMP(rel1, ex11, ex12, _, _) => [T.CJUMP(rel1, ex11, ex12, true_label, temp_label)]
+                                      | T.EXP(T.CONST 0) => (
+                                        case e1_ of
+                                            T.BINOP(oper__, e11, e12) => helper(true_label, temp_label, oper__, e11, e12)
+                                          | _ => raise IfNonRel
+                                      )
                                       | _ => raise IfNonRel)
                               in
-                                [cj, T.LABEL temp_label] @ helper(true_label, false_label, oper2, ex21, ex22)
+                                cj @ [T.LABEL temp_label] @ helper(true_label, false_label, oper2, ex21, ex22)
                               end
                             )
                           | T.AND => (
                             let
                                 val temp_label = Temp.newlabel()
                                 val cj = (case unNx (Ex ex1) of
-                                        T.CJUMP(rel1, ex11, ex12, _, _) => T.CJUMP(rel1, ex11, ex12, temp_label, false_label)
+                                        T.CJUMP(rel1, ex11, ex12, _, _) => [T.CJUMP(rel1, ex11, ex12, temp_label, false_label)]
+                                      | T.EXP(T.CONST 0) => (
+                                        case e1_ of
+                                            T.BINOP(oper__, e11, e12) => helper(temp_label, false_label, oper__, e11, e12)
+                                          | _ => raise IfNonRel
+                                      )
                                       | _ => raise IfNonRel)
                               in
-                                [cj, T.LABEL temp_label] @ helper(true_label, false_label, oper2, ex21, ex22)
+                                cj @ [T.LABEL temp_label] @ helper(true_label, false_label, oper2, ex21, ex22)
                               end
                           )
                           | _ => raise IfNonRel
                         ) |
-                      helper (true_label, false_label, oper_, (T.BINOP(oper1, ex11, ex12)), ex2 as T.ESEQ(_, _)) =
+                      helper (true_label, false_label, oper_, (T.BINOP(oper1, ex11, ex12)), ex2 as T.ESEQ(s2_, e2_)) =
                         (
                           case oper_ of
                             T.OR => (
                               let
                                 val temp_label = Temp.newlabel()
                                 val cj = (case unNx (Ex ex2) of
-                                        T.CJUMP(rel1, ex11, ex12, _, _) => T.CJUMP(rel1, ex11, ex12, true_label, false_label)
+                                        T.CJUMP(rel1, ex11, ex12, _, _) => [T.CJUMP(rel1, ex11, ex12, true_label, false_label)]
+                                      | T.EXP(T.CONST 0) => (
+                                        case e2_ of
+                                            T.BINOP(oper__, e21, e22) => helper(true_label, false_label, oper__, e21, e22)
+                                          | _ => raise IfNonRel
+                                      )
                                       | _ => raise IfNonRel)
                               in
-                                helper(true_label, temp_label, oper1, ex11, ex12) @ [T.LABEL temp_label, cj]
+                                helper(true_label, temp_label, oper1, ex11, ex12) @ [T.LABEL temp_label] @ cj
                               end
                             )
                           | T.AND => (
                             let
                                 val temp_label = Temp.newlabel()
                                 val cj = (case unNx (Ex ex2) of
-                                        T.CJUMP(rel1, ex11, ex12, _, _) => T.CJUMP(rel1, ex11, ex12, true_label, false_label)
+                                        T.CJUMP(rel1, ex11, ex12, _, _) => [T.CJUMP(rel1, ex11, ex12, true_label, false_label)]
+                                      | T.EXP(T.CONST 0) => (
+                                        case e2_ of
+                                            T.BINOP(oper__, e21, e22) => helper(true_label, false_label, oper__, e21, e22)
+                                          | _ => raise IfNonRel
+                                      )
                                       | _ => raise IfNonRel)
                               in
-                                helper(temp_label, false_label, oper1, ex11, ex12) @ [T.LABEL temp_label, cj] 
+                                helper(temp_label, false_label, oper1, ex11, ex12) @ [T.LABEL temp_label] @ cj 
                               end
                           )
                           | _ => raise IfNonRel

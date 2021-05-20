@@ -2,7 +2,7 @@
 
 Lab 6
 
-    Hash : 83a10bece039ca7cf54162e6733473db5855692d
+    Hash : 2b9a252befb25380322a795314f974be763fd73e
 
     How to run: 
     There are five ways to execute
