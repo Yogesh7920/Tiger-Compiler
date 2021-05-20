@@ -129,6 +129,9 @@ struct
             )
         | FunDec ({Name, ArgTypes, Type, Val}) => (
             let
+              val lab = Temp.newlabel()
+              val env_fun = Env.insert (env, Name, T.NAME lab)
+
               val numOfArgs = List.length ArgTypes
               val _ = insert_argenv(Name, numOfArgs)
 
@@ -146,10 +149,11 @@ struct
                     fun update_env e [] = e |
                         update_env e (x::xs) = update_env (extract_ID e x) xs
                   in
-                    update_env Env.empty ArgTypes 
+                    update_env env ArgTypes 
                   end
-              val body_ = exp_to_ir env_ Val
               val regs = Env.listItems(env_)
+              val env_ = Env.insert(env_, Name, T.NAME lab)
+              val body_ = exp_to_ir env_ Val
               val assign_reg = 
                     let
                       fun extract (0, []) = []  |
@@ -160,13 +164,12 @@ struct
                     in
                       extract (numOfArgs, regs)
                     end
-              val lab = Temp.newlabel()
+              
               val skip = Temp.newlabel()
-              val env_ = Env.insert (env, Name, T.NAME lab)
               val restore_fp = T.MOVE (T.TEMP F.frameptr, T.MEM(T.TEMP F.frameptr))
               val pop_stack = popstack (numOfArgs+2) (* pop arg, ret addr, prev fp*)
             in
-              (env_, T.list_to_SEQ ([
+              (env_fun, T.list_to_SEQ ([
                 T.JUMP (T.NAME skip, [skip]),
                 T.LABEL lab] 
                 @ assign_reg @
@@ -276,6 +279,7 @@ struct
                 in
                   helper (num_of_locals, locals)
                 end
+          val release_local_alloc = if (num_of_locals>0) then [popstack(num_of_locals)] else []
         in
           T.ESEQ(T.list_to_SEQ(
             alloc_local @ save_local @ [
@@ -286,7 +290,7 @@ struct
             ] @ add_args @ [
               T.EXP(T.CALL(lab, args)),
               T.LABEL retAddress
-              ] @ retrieve_locals), T.TEMP F.retval) 
+              ] @ retrieve_locals @ release_local_alloc), T.TEMP F.retval) 
         end
 
     and whileloop_to_ir env ({Cond, Body})  = 
@@ -368,8 +372,7 @@ struct
     and letexp_to_ir env ({Let, In}) = 
         let
           val (env_, decs) = decs_to_ir env Let
-          val env_union = Env.unionWith (fn (x, y) => y) (env, env_)
-          val e = exps_to_ir env_union In
+          val e = exps_to_ir env_ In
         in
           T.ESEQ (T.list_to_SEQ decs, e)
         end
