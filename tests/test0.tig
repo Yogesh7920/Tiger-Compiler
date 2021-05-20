@@ -1,5 +1,2 @@
-let
-    function x (a: int) = a + 1
-in
-    x(1)
-end
+var a := 3
+var b := if (a=1|a=2) then 2 else 4

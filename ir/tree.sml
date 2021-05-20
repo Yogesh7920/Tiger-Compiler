@@ -30,5 +30,8 @@ struct
     fun list_to_SEQ []       = raise Error      |
         list_to_SEQ [x]      = x                |
         list_to_SEQ (x::xs) = SEQ (x, list_to_SEQ xs)
+    
+    fun SEQ_to_list (SEQ(stm1, stm2)) = (SEQ_to_list stm1) @ (SEQ_to_list stm2) |
+        SEQ_to_list stm = [stm]
 
 end

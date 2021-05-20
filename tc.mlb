@@ -9,9 +9,9 @@ tiger/tiger.lex.sml
 ir/frame.sml
 ir/temp.sml
 ir/tree.sml
-ir/translate.sml
 ir/canon.sml
 tiger/printast.sml
 target/pp.sml
 ir/printir.sml
+ir/translate.sml
 tc.sml

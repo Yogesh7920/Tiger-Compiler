@@ -5,7 +5,7 @@ structure Env = RedBlackMapFn (struct
 
 structure Translate =
 struct
-    exception Error
+    exception UnknownError
     exception StmConvError
     exception NotCJUMP
     exception whileCondNotRel
@@ -79,9 +79,9 @@ struct
     
     fun unCx (Ex (T.CONST 0)) = (fn (t,f) => T.JUMP (T.NAME f, [f]))   |
         unCx (Ex (T.CONST 1)) = (fn (t,f) => T.JUMP (T.NAME t, [t]))   |
-        unCx (Nx _) = raise Error   |
+        unCx (Nx _) = raise UnknownError   |
         unCx (Cx c) = c             |
-        unCx _ = raise Error
+        unCx _ = raise UnknownError
 
     fun compile prog  = (
         case prog of
@@ -190,11 +190,12 @@ struct
 
     and exps_to_ir env xs = 
         let
-          fun helper []       = T.CONST 0       |
-              helper [x]      = exp_to_ir env x |
-              helper (x::xs)  = T.ESEQ (T.EXP (exp_to_ir env x), helper xs)
+          val exps = List.map (exp_to_ir env) xs
+          val last = List.hd (List.rev exps)
+          val hs = List.rev (List.tl (List.rev exps))
+          val hs = List.map (T.EXP) hs
         in
-          helper xs
+          if (hs=[]) then T.ESEQ(T.EXP(T.CONST 0), last) else T.ESEQ (T.list_to_SEQ(hs), last)
         end
 
     and exp_to_ir env exp = (
@@ -236,7 +237,7 @@ struct
                         T.BINOP(T.PLUS, T.TEMP F.stackptr, T.CONST (num_of_locals-n))
                         ), x) :: helper ((n-1), xs)
                         ) |
-                      helper (_, _) = raise Error
+                      helper (_, _) = raise UnknownError
                 in
                   helper (num_of_locals, locals)
                 end
@@ -333,7 +334,7 @@ struct
           val done = Temp.newlabel()
           val reg = case dec of
                       T.MOVE (T.TEMP t, v) => t
-                    | _ => raise Error
+                    | _ => raise UnknownError
           val inc = T.MOVE (T.TEMP reg, T.BINOP(T.PLUS, T.TEMP reg, T.CONST 1))
           val to_ = exp_to_ir env To
           val body_ = exp_to_ir env_ Body
@@ -349,7 +350,14 @@ struct
     and ifcond_to_ir env ({If, Then, Else}) = 
         let
           val join = Temp.newlabel() (* once both if and else are done *)
-          val if_ = unNx (Ex (exp_to_ir env If))
+          val _ = Printtree.printtree (TextIO.stdOut, T.EXP(exp_to_ir env If))
+          val (pre_cond, if_) = case (exp_to_ir env If) of
+                                  T.ESEQ(pre, e) => (pre, unNx (Ex e))
+                                | _ => raise StmConvError
+          val pre_cond = case pre_cond of
+                          T.EXP(T.CONST _) => []
+                        | T.EXP(T.ESEQ(s, _)) => T.SEQ_to_list(s)
+                        | _ => raise UnknownError
           val (t, f) = 
               case if_ of
                 T.CJUMP(_, _, _, t_, f_) => (t_,f_)  (* getting the labels from cjump *)
@@ -362,7 +370,7 @@ struct
 
           val res = Temp.newtemp() (* final value is stored, either its then or else*)
 
-          val stm = T.list_to_SEQ ([
+          val stm = T.list_to_SEQ (pre_cond @ [
             if_, T.LABEL t, T.MOVE(T.TEMP res, then_), (* the cjump in if_ will go to t or f, for true & false*)
             T.JUMP (T.NAME join, [join]), (* once the is done we jump to join (bypass else)*)
             T.LABEL f, T.MOVE (T.TEMP res, else_), T.LABEL join

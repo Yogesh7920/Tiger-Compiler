@@ -40,7 +40,7 @@ struct
                                         in
                                             ["MethodCall({Obj = "] @ obj_val @ [", Name = ",  Name, ", Args = "] @ args_val @ ["})"]
                                         end
-        | exp_to_str (Exps e) = ["["] @  exps_to_str e @ ["]"]
+        | exp_to_str (Exps e) = ["Exps["] @  exps_to_str e @ ["]"]
         | exp_to_str (Assign a) =     let
                                             val (Obj, Exp) = a
                                             val obj_val = lval_to_str Obj
