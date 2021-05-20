@@ -3,6 +3,11 @@
     Name: Yogesh R
     Roll Number: 111801047
 
+# Registers
+- sp - stack pointer
+- fp - frame pointer
+- ra - return address
+- v0 - return value 
 # Command-line argumants
 - --ir -> print IR
 - --can -> print canonized IR
