@@ -31,6 +31,8 @@ Lab 3
 
   _(date: yyyy-mm-dd)_
 
+### 2021-05-20
+- IR, Canonisation done completely.
 ### 2021-05-14
 - Tree to IR done
 

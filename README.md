@@ -19,7 +19,7 @@
 
 # Lab Assignments
 ## Lab 6: Tree to IR
-
+- Ast to IR and IR to canonized version done.
 ## Lab 5: IR Tree representation
 - Tree representation, and canonization done.
 ## Lab 4: Pretty printing for Tiger.
