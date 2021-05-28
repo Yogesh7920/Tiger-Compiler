@@ -5,12 +5,11 @@ Lab 6
     Hash : cbf725a98b60cd67705672747da8015ad6fe9cd1
 
     How to run: 
-    There are five ways to execute
-    1 './tc filepath' , this prints the IR
-    2. './tc --ir filepath' , this also prints the IR
-    3. './tc --can filepath' , this prints the canonized IR
-    4. './tc --pp filepath' , this pretty prints the tiger code
-    5. './tc --ast filepath' , this prints the AST
+    There are four ways to execute
+    1. './tc --ir filepath' , this also prints the IR
+    2. './tc --can filepath' , this prints the canonized IR
+    3. './tc --pp filepath' , this pretty prints the tiger code
+    4. './tc --ast filepath' , this prints the AST
 
 Lab 5
     
